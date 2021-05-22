@@ -2,6 +2,8 @@ package feedback
 
 import (
 	"fmt"
+
+	"github.com/ozoncp/ocp-feedback-api/internal/models/entity"
 )
 
 const (
@@ -20,8 +22,7 @@ func (e FeedbackErr) Error() string {
 }
 
 type Feedback interface {
-	Id() uint64
-	UserId() uint64
+	entity.Entity
 	Comment() string
 }
 

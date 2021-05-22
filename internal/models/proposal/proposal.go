@@ -1,6 +1,10 @@
 package proposal
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/ozoncp/ocp-feedback-api/internal/models/entity"
+)
 
 const (
 	ErrInvalidId         = ProposalErr("provided propsal id is invalid")
@@ -19,8 +23,7 @@ func (e ProposalErr) Error() string {
 }
 
 type Proposal interface {
-	Id() uint64
-	UserId() uint64
+	entity.Entity
 	LessonId() uint64
 	DocumentId() uint64
 }

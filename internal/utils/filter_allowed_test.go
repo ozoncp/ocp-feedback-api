@@ -3,79 +3,113 @@ package utils
 import (
 	"reflect"
 	"testing"
+
+	"github.com/ozoncp/ocp-feedback-api/internal/models/entity"
 )
 
 func TestFilterBlocked(t *testing.T) {
 	t.Run("list slice is nil", func(t *testing.T) {
-		var list []interface{}
-		blockList := []interface{}{}
+		var list []entity.Entity
+		blockList := []uint64{}
 		_, err := FilterAllowed(list, blockList)
 
 		assertNonNilError(t, err)
 	})
 
 	t.Run("blockList slice is nil", func(t *testing.T) {
-		list := []interface{}{}
-		var blockList []interface{}
+		list := []entity.Entity{}
+		var blockList []uint64
 		_, err := FilterAllowed(list, blockList)
 
 		assertNonNilError(t, err)
 	})
 
 	t.Run("empty blockList", func(t *testing.T) {
-		list := []interface{}{1, 2, 3}
-		blockList := []interface{}{}
+		list := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 3, userId: 4},
+		}
+		blockList := []uint64{}
+
+		want := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 3, userId: 4},
+		}
 
 		got, err := FilterAllowed(list, blockList)
-		want := []interface{}{1, 2, 3}
 
 		assertNilError(t, err)
-		assertSlice(t, got, want)
+		assertEntity(t, got, want)
 	})
 
 	t.Run("empty list", func(t *testing.T) {
-		list := []interface{}{}
-		allowList := []interface{}{1, 2, 3}
+		list := []entity.Entity{}
+		blockList := []uint64{1, 2, 3, 4}
+		want := []entity.Entity{}
 
-		got, err := FilterAllowed(list, allowList)
-		want := []interface{}{}
+		got, err := FilterAllowed(list, blockList)
 
 		assertNilError(t, err)
-		assertSlice(t, got, want)
+		assertEntity(t, got, want)
 	})
 
 	t.Run("no items filtered", func(t *testing.T) {
-		list := []interface{}{1, 2, 3}
-		blockList := []interface{}{4, 5, 6}
+		list := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 2, userId: 4},
+		}
+		blockList := []uint64{3, 4, 5, 6, 7}
+		want := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 2, userId: 4},
+		}
+
 		got, err := FilterAllowed(list, blockList)
-		want := []interface{}{1, 2, 3}
 
 		assertNilError(t, err)
-		assertSlice(t, got, want)
+		assertEntity(t, got, want)
 	})
 
 	t.Run("unique items filtered", func(t *testing.T) {
-		list := []interface{}{1, 2, 3}
-		blockList := []interface{}{3, 1, 6}
+		list := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 2, userId: 4},
+			&Dummy{id: 3, userId: 5},
+		}
+
+		blockList := []uint64{3, 1, 6}
+		want := []entity.Entity{
+			&Dummy{id: 2, userId: 4},
+		}
+
 		got, err := FilterAllowed(list, blockList)
-		want := []interface{}{2}
 
 		assertNilError(t, err)
-		assertSlice(t, got, want)
+		assertEntity(t, got, want)
 	})
 
 	t.Run("duplicate items filtered", func(t *testing.T) {
-		list := []interface{}{1, 2, 3, 3}
-		blockList := []interface{}{3, 5, 6}
+		list := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 1, userId: 7},
+			&Dummy{id: 2, userId: 4},
+			&Dummy{id: 3, userId: 5},
+		}
+
+		blockList := []uint64{1, 6}
+		want := []entity.Entity{
+			&Dummy{id: 2, userId: 4},
+			&Dummy{id: 3, userId: 5},
+		}
+
 		got, err := FilterAllowed(list, blockList)
-		want := []interface{}{1, 2}
 
 		assertNilError(t, err)
-		assertSlice(t, got, want)
+		assertEntity(t, got, want)
 	})
 }
 
-func assertSlice(t *testing.T, got, want []interface{}) {
+func assertEntity(t *testing.T, got, want []entity.Entity) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {

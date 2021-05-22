@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 	"math"
+
+	"github.com/ozoncp/ocp-feedback-api/internal/models/entity"
 )
 
 // SplitSlice splits passed slice into equal chunks.
@@ -12,7 +14,7 @@ import (
 // the whole slice will be returned.
 // If passed slice is nil, error will be returned.
 // If passed chunk size is negative, error will be returned
-func SplitSlice(slice []interface{}, chunkSize int) ([][]interface{}, error) {
+func SplitSlice(slice []entity.Entity, chunkSize int) ([][]entity.Entity, error) {
 	if slice == nil {
 		return nil, errors.New("cannot split nil slice")
 	}
@@ -20,10 +22,10 @@ func SplitSlice(slice []interface{}, chunkSize int) ([][]interface{}, error) {
 		return nil, errors.New("cannot split slice into chunks of negative size")
 	}
 	if chunkSize == 0 {
-		return [][]interface{}{slice}, nil
+		return [][]entity.Entity{slice}, nil
 	}
 
-	chunks := [][]interface{}{}
+	chunks := [][]entity.Entity{}
 	right_bound := 0
 
 	for i := 0; i < len(slice); i += chunkSize {

@@ -3,71 +3,105 @@ package utils
 import (
 	"reflect"
 	"testing"
+
+	"github.com/ozoncp/ocp-feedback-api/internal/models/entity"
 )
 
 func TestSplitSlice(t *testing.T) {
 
 	t.Run("nil slice", func(t *testing.T) {
-		var slice []interface{}
+		var slice []entity.Entity
 		_, err := SplitSlice(slice, 1)
 
 		assertNonNilError(t, err)
 	})
 
 	t.Run("negative chunk size", func(t *testing.T) {
-		slice := []interface{}{}
+		slice := []entity.Entity{}
 		_, err := SplitSlice(slice, -1)
 
 		assertNonNilError(t, err)
 	})
 
 	t.Run("empty slice", func(t *testing.T) {
-		slice := []interface{}{}
-		got, err := SplitSlice(slice, 1)
-		want := [][]interface{}{}
+		got, err := SplitSlice([]entity.Entity{}, 1)
+		want := [][]entity.Entity{}
 
 		assertNilError(t, err)
-		assert2DSlice(t, got, want)
+		assertEntityMatrix(t, got, want)
 	})
 
 	t.Run("zero chunk size", func(t *testing.T) {
-		slice := []interface{}{1, 2, 3}
+
+		slice := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 3, userId: 4},
+		}
+
+		want := [][]entity.Entity{
+			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}},
+		}
+
 		got, err := SplitSlice(slice, 0)
-		want := [][]interface{}{{1, 2, 3}}
 
 		assertNilError(t, err)
-		assert2DSlice(t, got, want)
+		assertEntityMatrix(t, got, want)
 	})
 
 	t.Run("slice size divisible by chunk size", func(t *testing.T) {
-		slice := []interface{}{1, 2, 3, 4, 5, 6}
+		slice := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 3, userId: 4},
+			&Dummy{id: 5, userId: 6},
+			&Dummy{id: 7, userId: 8},
+		}
+
+		want := [][]entity.Entity{
+			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}},
+			{&Dummy{id: 5, userId: 6}, &Dummy{id: 7, userId: 8}},
+		}
 		got, err := SplitSlice(slice, 2)
-		want := [][]interface{}{{1, 2}, {3, 4}, {5, 6}}
 
 		assertNilError(t, err)
-		assert2DSlice(t, got, want)
+		assertEntityMatrix(t, got, want)
 	})
 
 	t.Run("slice size is not divisible by chunk size", func(t *testing.T) {
-		slice := []interface{}{1, 2, 3, 4, 5, 6}
-		got, err := SplitSlice(slice, 4)
-		want := [][]interface{}{{1, 2, 3, 4}, {5, 6}}
+		slice := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 3, userId: 4},
+			&Dummy{id: 5, userId: 6},
+			&Dummy{id: 7, userId: 8},
+			&Dummy{id: 9, userId: 10},
+		}
+
+		want := [][]entity.Entity{
+			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}, &Dummy{id: 5, userId: 6}},
+			{&Dummy{id: 7, userId: 8}, &Dummy{id: 9, userId: 10}},
+		}
+		got, err := SplitSlice(slice, 3)
 
 		assertNilError(t, err)
-		assert2DSlice(t, got, want)
+		assertEntityMatrix(t, got, want)
 	})
 
 	t.Run("chunk size greater than slice size", func(t *testing.T) {
-		slice := []interface{}{1, 2, 3}
+		slice := []entity.Entity{
+			&Dummy{id: 1, userId: 2},
+			&Dummy{id: 3, userId: 4},
+		}
+
+		want := [][]entity.Entity{
+			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}},
+		}
 		got, err := SplitSlice(slice, 10)
-		want := [][]interface{}{{1, 2, 3}}
 
 		assertNilError(t, err)
-		assert2DSlice(t, got, want)
+		assertEntityMatrix(t, got, want)
 	})
 }
 
-func assert2DSlice(t *testing.T, got, want [][]interface{}) {
+func assertEntityMatrix(t *testing.T, got, want [][]entity.Entity) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {

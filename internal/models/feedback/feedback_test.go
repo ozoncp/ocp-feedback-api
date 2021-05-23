@@ -103,7 +103,9 @@ func assertString(t *testing.T, got, want string) {
 func assertFeedback(t *testing.T, got, want Feedback) {
 	t.Helper()
 
-	if got.UserId() != want.UserId() || got.Comment() != want.Comment() {
+	if got.Id() != want.Id() ||
+		got.UserId() != want.UserId() ||
+		got.Comment() != want.Comment() {
 		t.Errorf("got %v want %v", got, want)
 	}
 }

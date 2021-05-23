@@ -7,7 +7,7 @@ import (
 
 func TestFeedbackCtor(t *testing.T) {
 
-	t.Run("valid object", func(t *testing.T) {
+	t.Run("valid ctor", func(t *testing.T) {
 		want := &feedback{id: 1, userId: 42, comment: "objectName"}
 		feedback, err := New(want.id, want.userId, want.comment)
 

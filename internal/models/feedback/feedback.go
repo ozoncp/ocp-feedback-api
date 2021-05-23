@@ -61,6 +61,7 @@ func (f *feedback) UserId() uint64 {
 }
 
 // UpdateComment sets a new comment
+// If passed comment is invalid, ErrInvalidComment error will be returned
 func (f *feedback) UpdateComment(comment string) error {
 	if len(comment) == 0 {
 		return ErrInvalidComment

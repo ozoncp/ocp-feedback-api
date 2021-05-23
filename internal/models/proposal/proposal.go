@@ -15,7 +15,7 @@ const (
 	formatString = "id: %v, user: %v, lesson: %v, document: %v"
 )
 
-// ProposalErr are errors that happen while interacting with a feedback
+// ProposalErr are errors that happen while interacting with a proposal
 type ProposalErr string
 
 func (e ProposalErr) Error() string {

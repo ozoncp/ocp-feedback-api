@@ -5,18 +5,22 @@ import (
 )
 
 func assertNilError(t *testing.T, err error) {
+	t.Helper()
+
 	if err != nil {
 		t.Errorf("error must not be returned")
 	}
 }
 
 func assertNonNilError(t *testing.T, err error) {
+	t.Helper()
+
 	if err == nil {
 		t.Errorf("error must be returned")
 	}
 }
 
-// dummy is a type that implements Entity interface
+// dummy is just type that implements Entity interface
 // used for testing
 type Dummy struct {
 	id     uint64

@@ -33,7 +33,7 @@ func TestMirrorMap(t *testing.T) {
 
 	t.Run("key collision panic", func(t *testing.T) {
 		dict := map[interface{}]interface{}{1: "10", 2: "10", 3: "30"}
-		assertPanic(t)
+		defer assertPanic(t)
 		_, _ = MirrorMap(dict)
 		t.Error("goroutine must enter panic state")
 	})

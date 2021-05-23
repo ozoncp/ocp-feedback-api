@@ -7,9 +7,9 @@ import (
 
 func TestProposalCtor(t *testing.T) {
 
-	t.Run("valid object", func(t *testing.T) {
+	t.Run("valid ctor", func(t *testing.T) {
 		want := &proposal{id: 1, userId: 2, lessonId: 3, documentId: 4}
-		got, err := New(want.Id(), want.UserId(), want.LessonId(), want.DocumentId())
+		got, err := New(want.id, want.userId, want.lessonId, want.documentId)
 
 		assertError(t, err, nil)
 		assertProposal(t, got, want)
@@ -17,30 +17,59 @@ func TestProposalCtor(t *testing.T) {
 
 	t.Run("invalid id", func(t *testing.T) {
 		p := &proposal{id: 0, userId: 2, lessonId: 3, documentId: 4}
-		_, err := New(p.Id(), p.UserId(), p.LessonId(), p.DocumentId())
+		_, err := New(p.id, p.userId, p.lessonId, p.documentId)
 
 		assertError(t, err, ErrInvalidId)
 	})
 
 	t.Run("invalid user id", func(t *testing.T) {
 		p := &proposal{id: 1, userId: 0, lessonId: 3, documentId: 4}
-		_, err := New(p.Id(), p.UserId(), p.LessonId(), p.DocumentId())
+		_, err := New(p.id, p.userId, p.lessonId, p.documentId)
 
 		assertError(t, err, ErrInvalidUserId)
 	})
 
 	t.Run("invalid lesson id", func(t *testing.T) {
 		p := &proposal{id: 1, userId: 2, lessonId: 0, documentId: 4}
-		_, err := New(p.Id(), p.UserId(), p.LessonId(), p.DocumentId())
+		_, err := New(p.id, p.userId, p.lessonId, p.documentId)
 
 		assertError(t, err, ErrInvalidLessonId)
 	})
 
 	t.Run("invalid document id", func(t *testing.T) {
 		p := &proposal{id: 1, userId: 2, lessonId: 3, documentId: 0}
-		_, err := New(p.Id(), p.UserId(), p.LessonId(), p.DocumentId())
+		_, err := New(p.id, p.userId, p.lessonId, p.documentId)
 
 		assertError(t, err, ErrInvalidDocumentId)
+	})
+
+	t.Run("valid id", func(t *testing.T) {
+		p := &proposal{id: 1, userId: 2, lessonId: 3, documentId: 4}
+		got, _ := New(p.id, p.userId, p.lessonId, p.documentId)
+
+		assertUint64(t, got.Id(), p.id)
+	})
+
+	t.Run("valid user id", func(t *testing.T) {
+		p := &proposal{id: 1, userId: 2, lessonId: 3, documentId: 4}
+		got, _ := New(p.id, p.userId, p.lessonId, p.documentId)
+
+		assertUint64(t, got.UserId(), p.userId)
+
+	})
+
+	t.Run("valid lesson id", func(t *testing.T) {
+		p := &proposal{id: 1, userId: 2, lessonId: 3, documentId: 4}
+		got, _ := New(p.id, p.userId, p.lessonId, p.documentId)
+
+		assertUint64(t, got.LessonId(), p.lessonId)
+	})
+
+	t.Run("valid document id", func(t *testing.T) {
+		p := &proposal{id: 1, userId: 2, lessonId: 3, documentId: 4}
+		got, _ := New(p.id, p.userId, p.lessonId, p.documentId)
+
+		assertUint64(t, got.DocumentId(), p.documentId)
 	})
 }
 
@@ -80,6 +109,14 @@ func assertProposal(t *testing.T, got, want Proposal) {
 }
 
 func assertError(t *testing.T, got, want error) {
+	t.Helper()
+
+	if got != want {
+		t.Errorf("got error %q want %q", got, want)
+	}
+}
+
+func assertUint64(t *testing.T, got, want uint64) {
 	t.Helper()
 
 	if got != want {

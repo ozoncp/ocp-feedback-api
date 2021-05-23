@@ -23,6 +23,7 @@ func (e FeedbackErr) Error() string {
 
 type Feedback interface {
 	entity.Entity
+	UpdateComment(string) error
 	Comment() string
 }
 
@@ -57,6 +58,15 @@ func (f *feedback) Id() uint64 {
 // UserId returns user identifier
 func (f *feedback) UserId() uint64 {
 	return f.userId
+}
+
+// UpdateComment sets a new comment
+func (f *feedback) UpdateComment(comment string) error {
+	if len(comment) == 0 {
+		return ErrInvalidComment
+	}
+	f.comment = comment
+	return nil
 }
 
 // Comment returns a comment left by user

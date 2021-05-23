@@ -11,16 +11,16 @@ func TestSplitSlice(t *testing.T) {
 
 	t.Run("nil slice", func(t *testing.T) {
 		var slice []entity.Entity
-		_, err := SplitSlice(slice, 1)
-
-		assertNonNilError(t, err)
+		defer assertPanic(t)
+		_, _ = SplitSlice(slice, 1)
+		t.Error("goroutine must enter panic state")
 	})
 
 	t.Run("negative chunk size", func(t *testing.T) {
 		slice := []entity.Entity{}
-		_, err := SplitSlice(slice, -1)
-
-		assertNonNilError(t, err)
+		defer assertPanic(t)
+		_, _ = SplitSlice(slice, -1)
+		t.Error("goroutine must enter panic state")
 	})
 
 	t.Run("empty slice", func(t *testing.T) {

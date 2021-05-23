@@ -20,6 +20,12 @@ func assertNonNilError(t *testing.T, err error) {
 	}
 }
 
+func assertPanic(t *testing.T) {
+	if r := recover(); r == nil {
+		t.Errorf("goroutine must enter panic state")
+	}
+}
+
 // dummy is just type that implements Entity interface
 // used for testing
 type Dummy struct {

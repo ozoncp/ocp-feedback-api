@@ -10,9 +10,9 @@ import (
 func TestFeedbackConversion(t *testing.T) {
 	t.Run("nil slice", func(t *testing.T) {
 		var entities []entity.Entity
-		_, err := EntitiesToMap(entities)
-
-		assertNonNilError(t, err)
+		defer assertPanic(t)
+		_, _ = EntitiesToMap(entities)
+		t.Error("goroutine must enter panic state")
 	})
 
 	t.Run("empty slice", func(t *testing.T) {
@@ -42,11 +42,7 @@ func TestFeedbackConversion(t *testing.T) {
 			&Dummy{id: 1, userId: 7},
 			&Dummy{id: 3, userId: 4},
 		}
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("goroutine must enter panic state")
-			}
-		}()
+		defer assertPanic(t)
 		_, _ = EntitiesToMap(entities)
 		t.Error("goroutine must enter panic state")
 	})

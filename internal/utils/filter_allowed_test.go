@@ -11,17 +11,17 @@ func TestFilterBlocked(t *testing.T) {
 	t.Run("list slice is nil", func(t *testing.T) {
 		var list []entity.Entity
 		blockList := []uint64{}
-		_, err := FilterAllowed(list, blockList)
-
-		assertNonNilError(t, err)
+		defer assertPanic(t)
+		_, _ = FilterAllowed(list, blockList)
+		t.Error("goroutine must enter panic state")
 	})
 
 	t.Run("blockList slice is nil", func(t *testing.T) {
 		list := []entity.Entity{}
 		var blockList []uint64
-		_, err := FilterAllowed(list, blockList)
-
-		assertNonNilError(t, err)
+		defer assertPanic(t)
+		_, _ = FilterAllowed(list, blockList)
+		t.Error("goroutine must enter panic state")
 	})
 
 	t.Run("empty blockList", func(t *testing.T) {

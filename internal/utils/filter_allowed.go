@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"errors"
-
 	"github.com/ozoncp/ocp-feedback-api/internal/models/entity"
 )
 
@@ -10,10 +8,10 @@ type void struct{}
 
 // FilterAllowed filters out items from list using blockList as a filter.
 // That is, only the items which don't belong to the blockList will be returned.
-// If one of arguments is nil, error will be returned
+// If one of arguments is nil, panic will be invoked
 func FilterAllowed(list []entity.Entity, blockList []uint64) ([]entity.Entity, error) {
 	if list == nil || blockList == nil {
-		return nil, errors.New("cannot filter nil slice")
+		panic("cannot filter nil slice")
 	}
 
 	allowed := []entity.Entity{}

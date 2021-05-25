@@ -28,9 +28,9 @@ func (r *busyConsumer) Write(p []byte) (n int, err error) {
 }
 
 // brokenComsumer is a consumer stub that returns an error
-type brokerConsumer struct{}
+type brokenConsumer struct{}
 
-func (r *brokerConsumer) Write(p []byte) (n int, err error) {
+func (r *brokenConsumer) Write(p []byte) (n int, err error) {
 	return len(p), errors.New("i'm broken :(")
 }
 
@@ -85,7 +85,7 @@ func TestReadFile(t *testing.T) {
 	})
 
 	t.Run("consumer error", func(t *testing.T) {
-		consumer := &brokerConsumer{}
+		consumer := &brokenConsumer{}
 		file_contents := "file_contents"
 		fileName, deleteFile := createTempFile(t, "file_name", file_contents)
 		defer deleteFile()

@@ -14,23 +14,23 @@ type spyConsumer struct {
 	bytes []byte
 }
 
-func (r *spyConsumer) Write(p []byte) (n int, err error) {
+func (c *spyConsumer) Write(p []byte) (n int, err error) {
 	consumedElements := 1 // consume 1 element at a time
-	r.bytes = append(r.bytes, p[:consumedElements]...)
+	c.bytes = append(c.bytes, p[:consumedElements]...)
 	return consumedElements, nil
 }
 
 // busyConsumer is a consumer stub that imitates non-responding consumer
 type busyConsumer struct{}
 
-func (r *busyConsumer) Write(p []byte) (n int, err error) {
+func (c *busyConsumer) Write(p []byte) (n int, err error) {
 	return 0, nil
 }
 
 // brokenComsumer is a consumer stub that returns an error
 type brokenConsumer struct{}
 
-func (r *brokenConsumer) Write(p []byte) (n int, err error) {
+func (c *brokenConsumer) Write(p []byte) (n int, err error) {
 	return len(p), errors.New("i'm broken :(")
 }
 

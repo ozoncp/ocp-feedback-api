@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,9 +9,9 @@ import (
 )
 
 func main() {
-	consumerTimeout, sleepTime := time.Second*2, time.Second*1
-	sc := &SleepyConsumer{os.Stdout, consumerTimeout}
-	if err := ObserveFile("some_file.txt", sc, sleepTime); err != nil {
+	sleepTime := time.Second * 1
+	sc := &SleepyConsumer{os.Stdout, sleepTime}
+	if err := ObserveFile("some_file.txt", sc); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -42,13 +41,13 @@ func (c *SleepyConsumer) Write(p []byte) (n int, err error) {
 // ObserveFile opens file and keeps reading its contents over and over
 // Every time file contents are read, consumer will be notified
 // Sleep method is used to add a delay between file reads
-func ObserveFile(fileName string, consumer *SleepyConsumer, timeout time.Duration) error {
+func ObserveFile(fileName string, consumer *SleepyConsumer) error {
 	if consumer == nil {
 		panic("consumer can't be nil")
 	}
 
 	readFile := func() error {
-		return readFileContents(fileName, consumer, timeout)
+		return readFileContents(fileName, consumer)
 	}
 
 	for {
@@ -61,8 +60,7 @@ func ObserveFile(fileName string, consumer *SleepyConsumer, timeout time.Duratio
 
 // readFileContents opens file, reads its contents and passes the contents to the consumer
 // if consumer is busy, function will try to wait until all chunks are consumed
-// timeout is used to control amount of time given to consume the data
-func readFileContents(fileName string, writer io.Writer, timeout time.Duration) error {
+func readFileContents(fileName string, writer io.Writer) error {
 	file, err := os.Open(fileName)
 	if err != nil {
 		return err
@@ -72,21 +70,6 @@ func readFileContents(fileName string, writer io.Writer, timeout time.Duration) 
 	if err != nil {
 		return err
 	}
-
-	totalSize := 0
-	for leave, timeout_guard := false, time.After(timeout); !leave; {
-		select {
-		case <-timeout_guard:
-			leave = true // consumer timed out
-		default:
-			chunkSize, err := writer.Write(data[totalSize:])
-			if err != nil {
-				return err
-			}
-			if totalSize += chunkSize; totalSize >= len(data) {
-				return nil // consumer consumed all the data
-			}
-		}
-	}
-	return errors.New("time is up")
+	_, err = writer.Write(data)
+	return err
 }

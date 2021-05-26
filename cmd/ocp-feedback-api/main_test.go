@@ -15,38 +15,30 @@ type spyConsumer struct {
 }
 
 func (c *spyConsumer) Write(p []byte) (n int, err error) {
-	consumedElements := 1 // consume 1 element at a time
-	c.bytes = append(c.bytes, p[:consumedElements]...)
-	return consumedElements, nil
-}
-
-// busyConsumer is a consumer stub that imitates non-responding consumer
-type busyConsumer struct{}
-
-func (c *busyConsumer) Write(p []byte) (n int, err error) {
-	return 0, nil
+	c.bytes = p
+	return len(p), nil
 }
 
 // brokenComsumer is a consumer stub that returns an error
 type brokenConsumer struct{}
 
 func (c *brokenConsumer) Write(p []byte) (n int, err error) {
-	return len(p), errors.New("i'm broken :(")
+	return 1, errors.New("i'm broken :(")
 }
 
 func TestReadFile(t *testing.T) {
 	t.Run("empty file name", func(t *testing.T) {
-		sleepTime, consumerTimeout := time.Second, time.Second
+		sleepTime := time.Second
 		sc := &SleepyConsumer{os.Stdout, sleepTime}
-		err := readFileContents("", sc, consumerTimeout)
+		err := readFileContents("", sc)
 
 		assertNonNilError(t, err)
 	})
 
 	t.Run("wrong file name", func(t *testing.T) {
-		sleepTime, consumerTimeout := time.Second, time.Second
+		sleepTime := time.Second
 		sc := &SleepyConsumer{os.Stdout, sleepTime}
-		err := readFileContents("invalid_filename", sc, consumerTimeout)
+		err := readFileContents("invalid_filename", sc)
 
 		assertNonNilError(t, err)
 	})
@@ -56,7 +48,7 @@ func TestReadFile(t *testing.T) {
 		defer assertPanic(t)
 		defer deleteFile()
 
-		_ = ObserveFile(fileName, nil, time.Second)
+		_ = ObserveFile(fileName, nil)
 		t.Error("goroutine must enter panic state")
 	})
 
@@ -65,7 +57,7 @@ func TestReadFile(t *testing.T) {
 		file_contents := "file_contents"
 		fileName, deleteFile := createTempFile(t, "file_name", file_contents)
 		defer deleteFile()
-		err := readFileContents(fileName, consumer, time.Second*10)
+		err := readFileContents(fileName, consumer)
 
 		assertNilError(t, err)
 
@@ -74,22 +66,12 @@ func TestReadFile(t *testing.T) {
 		}
 	})
 
-	t.Run("consumer timeout", func(t *testing.T) {
-		consumer := &busyConsumer{}
-		file_contents := "file_contents"
-		fileName, deleteFile := createTempFile(t, "file_name", file_contents)
-		defer deleteFile()
-		err := readFileContents(fileName, consumer, time.Millisecond)
-
-		assertNonNilError(t, err)
-	})
-
 	t.Run("consumer error", func(t *testing.T) {
 		consumer := &brokenConsumer{}
 		file_contents := "file_contents"
 		fileName, deleteFile := createTempFile(t, "file_name", file_contents)
 		defer deleteFile()
-		err := readFileContents(fileName, consumer, time.Second*10)
+		err := readFileContents(fileName, consumer)
 
 		assertNonNilError(t, err)
 	})

@@ -4,28 +4,28 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ozoncp/ocp-feedback-api/internal/models/entity"
+	"github.com/ozoncp/ocp-feedback-api/internal/models"
 )
 
 func TestSplitSlice(t *testing.T) {
 
 	t.Run("nil slice", func(t *testing.T) {
-		var slice []entity.Entity
+		var slice []models.Entity
 		defer assertPanic(t)
 		_, _ = SplitSlice(slice, 1)
 		t.Error("goroutine must enter panic state")
 	})
 
 	t.Run("negative chunk size", func(t *testing.T) {
-		slice := []entity.Entity{}
+		slice := []models.Entity{}
 		defer assertPanic(t)
 		_, _ = SplitSlice(slice, -1)
 		t.Error("goroutine must enter panic state")
 	})
 
 	t.Run("empty slice", func(t *testing.T) {
-		got, err := SplitSlice([]entity.Entity{}, 1)
-		want := [][]entity.Entity{}
+		got, err := SplitSlice([]models.Entity{}, 1)
+		want := [][]models.Entity{}
 
 		assertNilError(t, err)
 		assertEntityMatrix(t, got, want)
@@ -33,13 +33,13 @@ func TestSplitSlice(t *testing.T) {
 
 	t.Run("zero chunk size", func(t *testing.T) {
 
-		slice := []entity.Entity{
-			&Dummy{id: 1, userId: 2},
-			&Dummy{id: 3, userId: 4},
+		slice := []models.Entity{
+			&Dummy{id: 1},
+			&Dummy{id: 3},
 		}
 
-		want := [][]entity.Entity{
-			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}},
+		want := [][]models.Entity{
+			{&Dummy{id: 1}, &Dummy{id: 3}},
 		}
 
 		got, err := SplitSlice(slice, 0)
@@ -49,16 +49,16 @@ func TestSplitSlice(t *testing.T) {
 	})
 
 	t.Run("slice size divisible by chunk size", func(t *testing.T) {
-		slice := []entity.Entity{
-			&Dummy{id: 1, userId: 2},
-			&Dummy{id: 3, userId: 4},
-			&Dummy{id: 5, userId: 6},
-			&Dummy{id: 7, userId: 8},
+		slice := []models.Entity{
+			&Dummy{id: 1},
+			&Dummy{id: 3},
+			&Dummy{id: 5},
+			&Dummy{id: 7},
 		}
 
-		want := [][]entity.Entity{
-			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}},
-			{&Dummy{id: 5, userId: 6}, &Dummy{id: 7, userId: 8}},
+		want := [][]models.Entity{
+			{&Dummy{id: 1}, &Dummy{id: 3}},
+			{&Dummy{id: 5}, &Dummy{id: 7}},
 		}
 		got, err := SplitSlice(slice, 2)
 
@@ -67,17 +67,17 @@ func TestSplitSlice(t *testing.T) {
 	})
 
 	t.Run("slice size is not divisible by chunk size", func(t *testing.T) {
-		slice := []entity.Entity{
-			&Dummy{id: 1, userId: 2},
-			&Dummy{id: 3, userId: 4},
-			&Dummy{id: 5, userId: 6},
-			&Dummy{id: 7, userId: 8},
-			&Dummy{id: 9, userId: 10},
+		slice := []models.Entity{
+			&Dummy{id: 1},
+			&Dummy{id: 3},
+			&Dummy{id: 5},
+			&Dummy{id: 7},
+			&Dummy{id: 9},
 		}
 
-		want := [][]entity.Entity{
-			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}, &Dummy{id: 5, userId: 6}},
-			{&Dummy{id: 7, userId: 8}, &Dummy{id: 9, userId: 10}},
+		want := [][]models.Entity{
+			{&Dummy{id: 1}, &Dummy{id: 3}, &Dummy{id: 5}},
+			{&Dummy{id: 7}, &Dummy{id: 9}},
 		}
 		got, err := SplitSlice(slice, 3)
 
@@ -86,13 +86,13 @@ func TestSplitSlice(t *testing.T) {
 	})
 
 	t.Run("chunk size greater than slice size", func(t *testing.T) {
-		slice := []entity.Entity{
-			&Dummy{id: 1, userId: 2},
-			&Dummy{id: 3, userId: 4},
+		slice := []models.Entity{
+			&Dummy{id: 1},
+			&Dummy{id: 3},
 		}
 
-		want := [][]entity.Entity{
-			{&Dummy{id: 1, userId: 2}, &Dummy{id: 3, userId: 4}},
+		want := [][]models.Entity{
+			{&Dummy{id: 1}, &Dummy{id: 3}},
 		}
 		got, err := SplitSlice(slice, 10)
 
@@ -101,7 +101,7 @@ func TestSplitSlice(t *testing.T) {
 	})
 }
 
-func assertEntityMatrix(t *testing.T, got, want [][]entity.Entity) {
+func assertEntityMatrix(t *testing.T, got, want [][]models.Entity) {
 	t.Helper()
 
 	if !reflect.DeepEqual(got, want) {

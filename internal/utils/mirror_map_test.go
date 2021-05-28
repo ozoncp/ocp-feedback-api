@@ -8,9 +8,8 @@ import (
 func TestMirrorMap(t *testing.T) {
 	t.Run("nil map", func(t *testing.T) {
 		var dict map[interface{}]interface{}
-		defer assertPanic(t)
-		_, _ = MirrorMap(dict)
-		t.Error("goroutine must enter panic state")
+		_, err := MirrorMap(dict)
+		assertNonNilError(t, err)
 	})
 
 	t.Run("empty map", func(t *testing.T) {

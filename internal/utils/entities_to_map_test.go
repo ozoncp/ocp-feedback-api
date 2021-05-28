@@ -10,9 +10,8 @@ import (
 func TestFeedbackConversion(t *testing.T) {
 	t.Run("nil slice", func(t *testing.T) {
 		var entities []models.Entity
-		defer assertPanic(t)
-		_, _ = EntitiesToMap(entities)
-		t.Error("goroutine must enter panic state")
+		_, err := EntitiesToMap(entities)
+		assertNonNilError(t, err)
 	})
 
 	t.Run("empty slice", func(t *testing.T) {

@@ -34,7 +34,7 @@ func New(chunkSize int, repo repo.Repo) (*flusher, error) {
 func (f *flusher) Flush(entities []models.Entity) ([]models.Entity, error) {
 	chunks, err := utils.SplitSlice(entities, f.chunkSize)
 	if err != nil {
-		return flattenEntities(chunks), fmt.Errorf("unable to flush: %v", err)
+		return entities, fmt.Errorf("unable to flush: %v", err)
 	}
 
 	for i := 0; i < len(chunks); i++ {

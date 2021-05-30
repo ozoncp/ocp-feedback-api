@@ -39,15 +39,8 @@ func (f *flusher) Flush(entities []models.Entity) ([]models.Entity, error) {
 
 	for i := 0; i < len(chunks); i++ {
 		if err := f.repo.AddEntities(chunks[i]); err != nil {
-			return flattenEntities(chunks[i:]), fmt.Errorf("unable to flush: %v", err)
+			return entities[i*f.chunkSize:], fmt.Errorf("unable to flush: %v", err)
 		}
 	}
 	return nil, nil // all entities have been flushed successfully
-}
-
-func flattenEntities(entities [][]models.Entity) (flattened []models.Entity) {
-	for i := 0; i < len(entities); i++ {
-		flattened = append(flattened, entities[i]...)
-	}
-	return
 }

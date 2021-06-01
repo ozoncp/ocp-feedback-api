@@ -83,8 +83,8 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(len(entities)/2, mockRepo)
 				gomock.InOrder(
-					mockRepo.EXPECT().AddEntities(entities[:2]).Times(1),
-					mockRepo.EXPECT().AddEntities(entities[2:]).Times(1),
+					mockRepo.EXPECT().AddEntities(entities[:2]),
+					mockRepo.EXPECT().AddEntities(entities[2:]),
 				)
 				remain, err = f.Flush(entities)
 				Ω(err).ShouldNot(HaveOccurred())
@@ -101,9 +101,9 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(2, mockRepo)
 				gomock.InOrder(
-					mockRepo.EXPECT().AddEntities(entities[:2]).Times(1),
-					mockRepo.EXPECT().AddEntities(entities[2:4]).Times(1),
-					mockRepo.EXPECT().AddEntities(entities[4:]).Times(1),
+					mockRepo.EXPECT().AddEntities(entities[:2]),
+					mockRepo.EXPECT().AddEntities(entities[2:4]),
+					mockRepo.EXPECT().AddEntities(entities[4:]),
 				)
 				remain, err = f.Flush(entities)
 				Ω(err).ShouldNot(HaveOccurred())
@@ -118,7 +118,7 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(0, mockRepo)
 
-				mockRepo.EXPECT().AddEntities(entities).Times(1)
+				mockRepo.EXPECT().AddEntities(entities)
 
 				remain, err = f.Flush(entities)
 				Ω(err).ShouldNot(HaveOccurred())
@@ -133,7 +133,7 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(len(entities)+1, mockRepo)
 
-				mockRepo.EXPECT().AddEntities(entities).Times(1)
+				mockRepo.EXPECT().AddEntities(entities)
 
 				remain, err = f.Flush(entities)
 				Ω(err).ShouldNot(HaveOccurred())
@@ -152,12 +152,8 @@ var _ = Describe("Flusher", func() {
 				f, _ = flusher.New(2, mockRepo)
 
 				gomock.InOrder(
-					mockRepo.EXPECT().AddEntities(entities[:2]).Times(1),
-					mockRepo.EXPECT().AddEntities(entities[2:]).DoAndReturn(
-						func(entity []models.Entity) error {
-							return errors.New("add entities fails")
-						},
-					),
+					mockRepo.EXPECT().AddEntities(entities[:2]),
+					mockRepo.EXPECT().AddEntities(entities[2:]).Return(errors.New("add entities fails")),
 				)
 
 				remain, err = f.Flush(entities)
@@ -174,11 +170,7 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(2, mockRepo)
 
-				mockRepo.EXPECT().AddEntities(entities[:2]).DoAndReturn(
-					func(entity []models.Entity) error {
-						return errors.New("add entities fails")
-					},
-				)
+				mockRepo.EXPECT().AddEntities(entities[:2]).Return(errors.New("add entities fails"))
 
 				remain, err = f.Flush(entities)
 				Ω(err).Should(HaveOccurred())

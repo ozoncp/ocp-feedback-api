@@ -16,11 +16,6 @@ func main() {
 	}
 }
 
-// Sleeper is an interface that represents operation delay
-type Sleeper interface {
-	Sleep()
-}
-
 // SleepyConsumer consumes bytes with a defined delay
 type SleepyConsumer struct {
 	io.Writer

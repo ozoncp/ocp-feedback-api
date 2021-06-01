@@ -12,6 +12,14 @@ func assertNilError(t *testing.T, err error) {
 	}
 }
 
+func assertNonNilError(t *testing.T, err error) {
+	t.Helper()
+
+	if err == nil {
+		t.Errorf("error must not be returned")
+	}
+}
+
 func assertPanic(t *testing.T) {
 	if r := recover(); r == nil {
 		t.Errorf("goroutine must enter panic state")

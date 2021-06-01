@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"math"
 
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
@@ -11,14 +12,12 @@ import (
 // will be less than the chunk size
 // If slice size is smaller than the chunk size or if the chunk size is zero,
 // the whole slice will be returned.
-// If passed slice is nil, panic will be invoked
-// If passed chunk size is negative, panic will be invoked
 func SplitSlice(slice []models.Entity, chunkSize int) ([][]models.Entity, error) {
 	if slice == nil {
-		panic("cannot split nil slice")
+		return nil, errors.New("cannot split nil slice")
 	}
 	if chunkSize < 0 {
-		panic("cannot split slice into chunks of negative size")
+		return nil, errors.New("cannot split slice into chunks of negative size")
 	}
 	if chunkSize == 0 {
 		return [][]models.Entity{slice}, nil

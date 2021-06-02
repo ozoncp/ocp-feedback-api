@@ -1,7 +1,6 @@
 package alarmer_test
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang/mock/gomock"
@@ -47,7 +46,6 @@ var _ = Describe("Alarmer", func() {
 				go func() {
 					defer al.Close()
 					<-timer.C
-					fmt.Println("ticks", ticks)
 					// timers are not very accurate
 					Ω(ticks).Should(BeNumerically(">=", 9))
 				}()

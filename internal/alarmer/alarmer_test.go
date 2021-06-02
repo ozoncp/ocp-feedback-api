@@ -1,6 +1,7 @@
 package alarmer_test
 
 import (
+	"sync/atomic"
 	"time"
 
 	"github.com/golang/mock/gomock"
@@ -40,18 +41,17 @@ var _ = Describe("Alarmer", func() {
 
 			It("should notify correct number of times (approximately) ", func() {
 				al := alarmer.New(40 * time.Millisecond)
-				ticks := 0
+				var ticks int32
 				al.Init()
 				timer := time.NewTimer(400 * time.Millisecond)
 				go func() {
 					defer al.Close()
 					<-timer.C
 					// timers are not very accurate
-					Ω(ticks).Should(BeNumerically(">=", 9))
+					Ω(atomic.LoadInt32(&ticks)).Should(BeNumerically(">=", 9))
 				}()
-
 				for range al.Alarm() {
-					ticks++
+					atomic.AddInt32(&ticks, 1)
 				}
 			})
 		})

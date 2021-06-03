@@ -79,10 +79,13 @@ func (s *saver) Init() {
 					}
 				}
 				s.entities = append(s.entities, entity)
-			case <-s.alarmer.Alarm():
-				if rem, err := s.flusher.Flush(s.entities); err != nil {
-					s.entities = s.entities[0:copy(s.entities[0:], rem)]
-					log.Printf("failed to save: %v", err)
+			case _, ok := <-s.alarmer.Alarm():
+				if ok {
+					if rem, err := s.flusher.Flush(s.entities); err != nil {
+						s.entities = s.entities[0:copy(s.entities[0:], rem)]
+						log.Printf("failed to save: %v", err)
+					}
+
 				}
 			case <-s.done:
 				if _, err := s.flusher.Flush(s.entities); err != nil {

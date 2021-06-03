@@ -6,7 +6,7 @@ import (
 
 // Alarmer is the interface that allows consumer to be notified over a channel
 type Alarmer interface {
-	Alarm() <-chan void
+	Alarm() <-chan struct{}
 }
 
 type void struct{}

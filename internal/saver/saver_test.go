@@ -51,10 +51,10 @@ var _ = Describe("Saver", func() {
 	})
 })
 
-type alarmerStub struct {
-	alarms chan struct{}
-}
+// type alarmerStub struct {
+// 	alarms chan struct{}
+// }
 
-func (a *alarmerStub) Alarm() <-chan struct{} {
-	return a.alarms
-}
+// func (a *alarmerStub) Alarm() <-chan struct{} {
+// 	return a.alarms
+// }

@@ -33,8 +33,8 @@ type saver struct {
 
 func New(capacity int, policy Policy,
 	alarmer alarmer.Alarmer, flusher flusher.Flusher) (*saver, error) {
-	if capacity < 0 {
-		return nil, errors.New("capacity cannot be negative")
+	if capacity <= 0 {
+		return nil, errors.New("capacity must be greater than 0")
 	}
 	if alarmer == nil {
 		return nil, errors.New("alarmer cannot be nil")

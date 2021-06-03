@@ -2,17 +2,18 @@ package saver
 
 import (
 	"errors"
+	"log"
 
 	"github.com/ozoncp/ocp-feedback-api/internal/alarmer"
 	"github.com/ozoncp/ocp-feedback-api/internal/flusher"
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 )
 
-type OverflowRule int
+type Policy int
 
 const (
-	DropAll    OverflowRule = iota // drop all data
-	DropOldest                     // drop only the oldest data
+	DropAll Policy = iota // drop all data
+	DropOne               // drop only the oldest data
 )
 
 type Saver interface {
@@ -22,20 +23,16 @@ type Saver interface {
 type void struct{}
 
 type saver struct {
-	rule    OverflowRule
-	stored  chan models.Entity
-	alarmer alarmer.Alarmer
-	flusher flusher.Flusher
-	done    chan void
-	errs    chan<- error
+	policy     Policy
+	entitiesCh chan models.Entity
+	entities   []models.Entity
+	alarmer    alarmer.Alarmer
+	flusher    flusher.Flusher
+	done       chan void
 }
 
-func New(capacity int,
-	rule OverflowRule,
-	alarmer alarmer.Alarmer,
-	flusher flusher.Flusher,
-	errs chan<- error) (*saver, error) {
-
+func New(capacity int, policy Policy,
+	alarmer alarmer.Alarmer, flusher flusher.Flusher) (*saver, error) {
 	if capacity < 0 {
 		return nil, errors.New("capacity cannot be negative")
 	}
@@ -45,24 +42,63 @@ func New(capacity int,
 	if flusher == nil {
 		return nil, errors.New("flusher cannot be nil")
 	}
-	if errs == nil {
-		return nil, errors.New("errors channel cannot be nil")
-	}
 
 	return &saver{
-		rule:    rule,
-		stored:  make(chan models.Entity, capacity),
-		alarmer: alarmer,
-		flusher: flusher,
-		done:    make(chan void),
-		errs:    make(chan<- error),
+		policy:     policy,
+		entitiesCh: make(chan models.Entity),
+		entities:   make([]models.Entity, 0, capacity),
+		alarmer:    alarmer,
+		flusher:    flusher,
+		done:       make(chan void),
 	}, nil
 }
 
 func (s *saver) Close() {
 	close(s.done)
+	close(s.entitiesCh)
 }
 
-func (s *saver) Save() {
+func (s *saver) Save(entity models.Entity) {
+	if !isClosed(s.entitiesCh) {
+		s.entitiesCh <- entity
+	}
+}
 
+func (s *saver) Init() {
+	go func() {
+		for {
+			select {
+			case entity := <-s.entitiesCh:
+				if len(s.entities) == cap(s.entities) {
+					switch s.policy {
+					case DropAll:
+						s.entities = s.entities[:0]
+					case DropOne:
+						copy(s.entities[0:], s.entities[1:])
+						s.entities = s.entities[:len(s.entities)-1]
+					}
+				}
+				s.entities = append(s.entities, entity)
+			case <-s.alarmer.Alarm():
+				if rem, err := s.flusher.Flush(s.entities); err != nil {
+					s.entities = s.entities[0:copy(s.entities[0:], rem)]
+					log.Printf("failed to save: %v", err)
+				}
+			case <-s.done:
+				if _, err := s.flusher.Flush(s.entities); err != nil {
+					log.Printf("failed to save: %v", err)
+				}
+				return
+			}
+		}
+	}()
+}
+
+func isClosed(ch <-chan models.Entity) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+	}
+	return false
 }

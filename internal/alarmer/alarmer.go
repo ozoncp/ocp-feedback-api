@@ -37,7 +37,10 @@ func (a *alarmer) Init() {
 		for {
 			select {
 			case <-ticker.C:
-				a.alarms <- void{}
+				select {
+				case a.alarms <- void{}:
+				default:
+				}
 			case <-a.done:
 				return
 			}

@@ -90,7 +90,7 @@ func (s *saver) Init() {
 			case _, ok := <-s.alarmer.Alarm():
 				if ok {
 					rem, err := s.flusher.Flush(s.entities)
-					s.entities = s.entities[0:copy(s.entities[0:], rem)]
+					s.entities = s.entities[:copy(s.entities, rem)]
 					if err != nil {
 						log.Printf("failed to save: %v", err)
 					}

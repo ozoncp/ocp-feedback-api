@@ -55,13 +55,10 @@ func New(capacity int, policy Policy,
 
 func (s *saver) Close() {
 	close(s.done)
-	close(s.entitiesCh)
 }
 
 func (s *saver) Save(entity models.Entity) {
-	if !isClosed(s.entitiesCh) {
-		s.entitiesCh <- entity
-	}
+	s.entitiesCh <- entity
 }
 
 func (s *saver) Init() {
@@ -88,6 +85,7 @@ func (s *saver) Init() {
 
 				}
 			case <-s.done:
+				log.Printf("entities: %v", s.entities)
 				if _, err := s.flusher.Flush(s.entities); err != nil {
 					log.Printf("failed to save: %v", err)
 				}
@@ -95,13 +93,4 @@ func (s *saver) Init() {
 			}
 		}
 	}()
-}
-
-func isClosed(ch <-chan models.Entity) bool {
-	select {
-	case <-ch:
-		return true
-	default:
-	}
-	return false
 }

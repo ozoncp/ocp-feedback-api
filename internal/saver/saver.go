@@ -9,11 +9,11 @@ import (
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 )
 
-// Policy is a set of actions which should be made if buffer overflow occurs
+// Policy is a set of actions which should be taken if buffer overflow occurs
 type Policy int
 
 const (
-	DropAll Policy = iota // drop all data
+	DropAll Policy = iota // drop all the data
 	DropOne               // drop only the oldest data
 )
 
@@ -33,7 +33,7 @@ type saver struct {
 	done       chan void
 }
 
-// New returns new Saver object
+// New returns a new Saver object
 func New(capacity int, policy Policy,
 	alarmer alarmer.Alarmer, flusher flusher.Flusher) (*saver, error) {
 	if capacity <= 0 {
@@ -56,22 +56,22 @@ func New(capacity int, policy Policy,
 	}, nil
 }
 
-// Close notifies Saver that no more data will be pushed to the repo
+// Close notifies Saver that no more data will be flushed to the repo
 func (s *saver) Close() {
 	close(s.done)
 }
 
-// Save schedules an entity to be pushed into the repo
+// Save schedules an entity to be flushed into the repo
 func (s *saver) Save(entity models.Entity) {
 	s.entitiesCh <- entity
 }
 
 // Init starts repeatedly processing incoming events
-// Received entities will be handled depending on the policy
-// Each time Saver is notified over Alarmer, it will try to flush stored entities
+// Received entities will be handled according to the policy
+// Each time Saver is notified by Alarmer, it will try to flush stored entities
 // If flushing fails, remaining entities will wait until next Alarmer signal occurs
 // or until Close is called
-// If Close is called, remaining entities will be pushed to the repo
+// If Close is called, remaining entities will be flushed to the repo
 func (s *saver) Init() {
 	go func() {
 		for {

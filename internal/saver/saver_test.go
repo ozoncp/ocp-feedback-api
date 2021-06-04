@@ -6,12 +6,58 @@ import (
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/ozoncp/ocp-feedback-api/internal/mocks"
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 	"github.com/ozoncp/ocp-feedback-api/internal/saver"
 )
 
 var _ = Describe("Saver", func() {
+
+	Describe("Constructor call", func() {
+		var (
+			controller *gomock.Controller
+			flusher    *flusherStub
+			alarmer    *alarmerStub
+		)
+
+		BeforeEach(func() {
+			controller = gomock.NewController(GinkgoT())
+			flusher = &flusherStub{}
+			alarmer = &alarmerStub{make(chan struct{})}
+		})
+
+		AfterEach(func() {
+			controller.Finish()
+		})
+
+		When("arguments are invalid", func() {
+			It("should return an error", func() {
+				By("receiving invalid capacity")
+				got, err := saver.New(0, saver.DropAll, alarmer, flusher)
+				Ω(err).Should(HaveOccurred())
+				Ω(got).Should(BeNil())
+
+				By("receiving a nil alarmer")
+				got, err = saver.New(1, saver.DropAll, nil, flusher)
+				Ω(err).Should(HaveOccurred())
+				Ω(got).Should(BeNil())
+
+				By("receiving a nil flusher")
+				got, err = saver.New(1, saver.DropAll, alarmer, nil)
+				Ω(err).Should(HaveOccurred())
+				Ω(got).Should(BeNil())
+			})
+		})
+
+		When("arguments are valid", func() {
+			It("should return valid object", func() {
+				got, err := saver.New(1, saver.DropAll, alarmer, flusher)
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(got).ShouldNot(BeNil())
+			})
+		})
+	})
 
 	Describe("Init call", func() {
 
@@ -235,6 +281,32 @@ var _ = Describe("Saver", func() {
 				saver.Close()
 			})
 		})
+
+		When("Flush has failed on close", func() {
+			It("should handle an error", func() {
+				entities := []models.Entity{
+					&entityStub{id: 1},
+					&entityStub{id: 2},
+					&entityStub{id: 3},
+					&entityStub{id: 4},
+				}
+				var wg sync.WaitGroup
+				wg.Add(1)
+				defer wg.Wait()
+
+				saver, _ := saver.New(len(entities), saver.DropAll, alarmer, mockFlusher)
+
+				mockFlusher.EXPECT().Flush(gomock.Eq(entities)).
+					Return(entities, errors.New("flushing failed")).Do(func(entities []models.Entity) { wg.Done() })
+
+				saver.Init()
+
+				for i := 0; i < len(entities); i++ {
+					saver.Save(entities[i])
+				}
+				saver.Close()
+			})
+		})
 	})
 
 })
@@ -249,6 +321,13 @@ func (a *alarmerStub) Alarm() <-chan struct{} {
 
 func (a *alarmerStub) alarm() {
 	a.alarms <- struct{}{}
+}
+
+type flusherStub struct {
+}
+
+func (f *flusherStub) Flush(entities []models.Entity) ([]models.Entity, error) {
+	return nil, nil
 }
 
 type entityStub struct {

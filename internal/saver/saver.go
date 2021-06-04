@@ -9,7 +9,7 @@ import (
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 )
 
-// Policy is a set of actions which should be made of buffer overflow occurs
+// Policy is a set of actions which should be made if buffer overflow occurs
 type Policy int
 
 const (
@@ -56,12 +56,12 @@ func New(capacity int, policy Policy,
 	}, nil
 }
 
-// Close notifies saver that no more data will be pushed to the repo
+// Close notifies Saver that no more data will be pushed to the repo
 func (s *saver) Close() {
 	close(s.done)
 }
 
-// Save schedules an entity to be pushed to the repo
+// Save schedules an entity to be pushed into the repo
 func (s *saver) Save(entity models.Entity) {
 	s.entitiesCh <- entity
 }

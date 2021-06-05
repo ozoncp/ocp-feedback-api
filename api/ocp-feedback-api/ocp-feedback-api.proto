@@ -4,10 +4,65 @@ package ocp.feedback.api;
 
 option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api";
 
+
+
+service OcpFeedbackApi {
+
+    rpc CreateFeedbackV1(CreateFeedbackV1Request) returns (CreateFeedbackV1Response) {}
+
+    rpc RemoveFeedbackV1(RemoveFeedbackV1Request) returns (RemoveFeedbackV1Response) {}
+
+    rpc DescribeFeedbackV1(DescribeFeedbackV1Request) returns (DescribeFeedbackV1Response) {}
+
+    rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {}
+
+}
+
 message Feedback {
     uint64 id = 1;
     uint64 user_id = 2;
     uint64 classroom_id = 3;
     string comment = 4;
 }
+
+
+message CreateFeedbackV1Request {
+    uint64 user_id = 1;
+    uint64 classroom_id = 2;
+    string comment = 3;
+}
+
+message CreateFeedbackV1Response {
+    uint64 id = 1;
+}
+
+message RemoveFeedbackV1Request {
+    uint64 id = 1;
+}
+
+message RemoveFeedbackV1Response {
+    bool found = 1;
+}
+
+message DescribeFeedbackV1Request {
+    uint64 id = 1;
+}
+
+message DescribeFeedbackV1Response {
+    Feedback feedback = 1;
+}
+
+message ListFeedbacksV1Request {
+    uint64 limit = 1;
+    uint64 offset = 2;
+}
+
+message ListFeedbacksV1Response {
+    repeated Feedback feedbacks = 1;
+}
+
+
+
+
+
 

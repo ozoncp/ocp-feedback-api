@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ocp.feedback.api;
 
-option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api";
+option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api;ocp_feedback_api";
 
 
 
@@ -15,7 +15,6 @@ service OcpFeedbackApi {
     rpc DescribeFeedbackV1(DescribeFeedbackV1Request) returns (DescribeFeedbackV1Response) {}
 
     rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {}
-
 }
 
 message Feedback {

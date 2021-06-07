@@ -18,7 +18,7 @@ service OcpFeedbackApi {
 }
 
 message Feedback {
-    uint64 id = 1;
+    uint64 feedback_id = 1;
     uint64 user_id = 2;
     uint64 classroom_id = 3;
     string comment = 4;
@@ -32,11 +32,11 @@ message CreateFeedbackV1Request {
 }
 
 message CreateFeedbackV1Response {
-    uint64 id = 1;
+    uint64 feedback_id = 1;
 }
 
 message RemoveFeedbackV1Request {
-    uint64 id = 1;
+    uint64 feedback_id = 1;
 }
 
 message RemoveFeedbackV1Response {
@@ -44,7 +44,7 @@ message RemoveFeedbackV1Response {
 }
 
 message DescribeFeedbackV1Request {
-    uint64 id = 1;
+    uint64 feedback_id = 1;
 }
 
 message DescribeFeedbackV1Response {

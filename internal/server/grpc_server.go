@@ -22,13 +22,13 @@ func (s *grpcServer) CreateFeedbackV1(ctx context.Context, req *fb.CreateFeedbac
 
 // RemoveFeedbackV1 ...
 func (s *grpcServer) RemoveFeedbackV1(ctx context.Context, req *fb.RemoveFeedbackV1Request) (*fb.RemoveFeedbackV1Response, error) {
-	// TODO return codes.NotFound if requsted id is not found
+	// TODO return codes.NotFound if requested id is not found
 	return &fb.RemoveFeedbackV1Response{}, nil
 }
 
 // DescribeFeedbackV1 ...
 func (s *grpcServer) DescribeFeedbackV1(ctx context.Context, req *fb.DescribeFeedbackV1Request) (*fb.DescribeFeedbackV1Response, error) {
-	// TODO return codes.NotFound if requsted id is not found
+	// TODO return codes.NotFound if requested id is not found
 	dummy := &fb.Feedback{FeedbackId: 42, UserId: 100, ClassroomId: 200, Comment: "just_a_comment"}
 	return &fb.DescribeFeedbackV1Response{Feedback: dummy}, nil
 }

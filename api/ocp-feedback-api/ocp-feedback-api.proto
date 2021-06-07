@@ -40,7 +40,7 @@ message RemoveFeedbackV1Request {
 }
 
 message RemoveFeedbackV1Response {
-    bool found = 1;
+    // some fields may be added in the future
 }
 
 message DescribeFeedbackV1Request {

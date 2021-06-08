@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "api/ocp-feedback-api/ocp-feedback-api.proto",
+    "title": "feedback-service.proto",
     "version": "version not set"
   },
   "consumes": [
@@ -301,8 +301,7 @@
         "comment": {
           "type": "string"
         }
-      },
-      "title": "Feedback messages"
+      }
     },
     "apiListFeedbacksV1Response": {
       "type": "object",

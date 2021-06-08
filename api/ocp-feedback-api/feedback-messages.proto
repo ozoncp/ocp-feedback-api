@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+import "github.com/envoyproxy/protoc-gen-validate/validate/validate.proto";
+package ocp.feedback.api;
+
+option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api;ocp_feedback_api";
+
+message Feedback {
+    uint64 feedback_id = 1; 
+    uint64 user_id = 2;
+    uint64 classroom_id = 3;
+    string comment = 4;
+}
+
+
+message CreateFeedbackV1Request {
+    uint64 user_id = 1  [(validate.rules).uint64.gt = 0];
+    uint64 classroom_id = 2  [(validate.rules).uint64.gt = 0];
+    string comment = 3;
+}
+
+message CreateFeedbackV1Response {
+    uint64 feedback_id = 1;
+}
+
+message RemoveFeedbackV1Request {
+    uint64 feedback_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message RemoveFeedbackV1Response {
+    // some fields may be added in the future
+    // we'll use GRPC status code to indicate an error
+}
+
+message DescribeFeedbackV1Request {
+    uint64 feedback_id = 1  [(validate.rules).uint64.gt = 0];
+}
+
+message DescribeFeedbackV1Response {
+    Feedback feedback = 1;
+}
+
+message ListFeedbacksV1Request {
+    uint64 limit = 1  [(validate.rules).uint64.gt = 0];
+    uint64 offset = 2;
+}
+
+message ListFeedbacksV1Response {
+    repeated Feedback feedbacks = 1;
+}

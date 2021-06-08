@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+
+import "github.com/envoyproxy/protoc-gen-validate/validate/validate.proto";
+package ocp.feedback.api;
+
+
+option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api;ocp_feedback_api";
+
+// Proposal messages
+message Proposal {
+    uint64 proposal_id = 1;
+    uint64 user_id = 2;
+    uint64 lesson_id = 3;
+    uint64 document_id = 4;
+}
+
+message CreateProposalV1Request {
+    uint64 user_id = 1  [(validate.rules).uint64.gt = 0];
+    uint64 lesson_id = 2  [(validate.rules).uint64.gt = 0];
+    uint64 document_id = 3  [(validate.rules).uint64.gt = 0];
+}
+
+message CreateProposalV1Response {
+    uint64 proposal_id = 1;
+}
+
+message RemoveProposalV1Request {
+    uint64 proposal_id = 1  [(validate.rules).uint64.gt = 0];
+}
+
+message RemoveProposalV1Response {
+    // some fields may be added in the future
+    // we'll use GRPC status code to indicate an error
+}
+
+message DescribeProposalV1Request {
+    uint64 proposal_id = 1  [(validate.rules).uint64.gt = 0];
+}
+
+message DescribeProposalV1Response {
+    Proposal proposal = 1;
+
+}
+
+message ListProposalsV1Request {
+    uint64 limit = 1  [(validate.rules).uint64.gt = 0];
+    uint64 offset = 2;
+}
+
+message ListProposalsV1Response {
+    repeated Proposal proposals = 1;
+}
+
+
+

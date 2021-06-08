@@ -5,7 +5,7 @@ PHONY: .generate
 .generate:
 		mkdir -p swagger
 		mkdir -p pkg/ocp-feedback-api
-		protoc -I vendor.protogen -I/usr/local/include \
+		protoc -I vendor.protogen -I /usr/local/include  -I api/ocp-feedback-api\
 				--go_out=pkg/ocp-feedback-api --go_opt=paths=import \
 				--go-grpc_out=pkg/ocp-feedback-api --go-grpc_opt=paths=import \
 				--grpc-gateway_out=pkg/ocp-feedback-api \
@@ -13,7 +13,9 @@ PHONY: .generate
 				--grpc-gateway_opt=paths=import \
 				--validate_out lang=go:pkg/ocp-feedback-api \
 				--swagger_out=allow_merge=true,merge_file_name=api:swagger \
-				api/ocp-feedback-api/ocp-feedback-api.proto
+				api/ocp-feedback-api/feedback-service.proto \
+				api/ocp-feedback-api/feedback-messages.proto \
+				api/ocp-feedback-api/proposal-messages.proto
 		mv pkg/ocp-feedback-api/github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api/* pkg/ocp-feedback-api
 		rm -rf pkg/ocp-feedback-api/github.com
 		mkdir -p cmd/ocp-feedback-api
@@ -37,7 +39,7 @@ PHONY: .vendor-proto
 .vendor-proto:
 		mkdir -p vendor.protogen
 		mkdir -p vendor.protogen/api/ocp-feedback-api
-		cp api/ocp-feedback-api/ocp-feedback-api.proto vendor.protogen/api/ocp-feedback-api
+		cp api/ocp-feedback-api/* vendor.protogen/api/ocp-feedback-api
 		@if [ ! -d vendor.protogen/google ]; then \
 			git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis &&\
 			mkdir -p  vendor.protogen/google/ &&\

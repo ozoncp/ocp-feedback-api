@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"errors"
@@ -92,26 +92,4 @@ func createTempFile(t *testing.T, fileName string, initialData string) (string, 
 		os.Remove(tmpfile.Name())
 	}
 	return tmpfile.Name(), removeFile
-}
-
-func assertNonNilError(t *testing.T, err error) {
-	t.Helper()
-
-	if err == nil {
-		t.Errorf("error must be returned")
-	}
-}
-
-func assertNilError(t *testing.T, err error) {
-	t.Helper()
-
-	if err != nil {
-		t.Errorf("error must not be returned")
-	}
-}
-
-func assertPanic(t *testing.T) {
-	if r := recover(); r == nil {
-		t.Errorf("goroutine must enter panic state")
-	}
 }

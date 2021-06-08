@@ -1,70 +1,40 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"io"
-	"log"
+	"net"
 	"os"
-	"time"
+
+	grpc_server "github.com/ozoncp/ocp-feedback-api/internal/server"
+	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
 )
 
+var grpcPort int
+
+func init() {
+	flag.IntVar(&grpcPort, "port", 10000, "GRPC server port")
+}
+
 func main() {
-	sleepTime := time.Second * 1
-	sc := &SleepyConsumer{os.Stdout, sleepTime}
-	if err := ObserveFile("some_file.txt", sc); err != nil {
-		log.Fatal(err)
-	}
-}
+	flag.Parse()
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	grpcEndpoint := fmt.Sprintf("localhost:%d", grpcPort)
 
-// SleepyConsumer consumes bytes with a defined delay
-type SleepyConsumer struct {
-	io.Writer
-	sleepDuration time.Duration
-}
-
-// Sleep pauses execution for a certain period of time
-func (c *SleepyConsumer) Sleep() {
-	time.Sleep(c.sleepDuration)
-}
-
-// Write wraps around Writer's write method and adds some detailed output
-func (c *SleepyConsumer) Write(p []byte) (n int, err error) {
-	fmt.Printf("Consumed %v bytes from file. Contents are: \n", len(p))
-	return c.Writer.Write(p)
-}
-
-// ObserveFile opens file and keeps reading its contents over and over
-// Every time file contents are read, consumer will be notified
-// Sleep method is used to add a delay between file reads
-func ObserveFile(fileName string, consumer *SleepyConsumer) error {
-	if consumer == nil {
-		panic("consumer can't be nil")
-	}
-
-	readFile := func() error {
-		return readFileContents(fileName, consumer)
-	}
-
-	for {
-		if err := readFile(); err != nil {
-			return fmt.Errorf("unable to read file %v: %v", fileName, err)
-		}
-		consumer.Sleep()
-	}
-}
-
-// readFileContents opens file, reads its contents and passes the contents to the consumer
-// if consumer is busy, function will try to wait until all chunks are consumed
-func readFileContents(fileName string, writer io.Writer) error {
-	file, err := os.Open(fileName)
+	lis, err := net.Listen("tcp", grpcEndpoint)
 	if err != nil {
-		return err
+		log.Fatal().Err(err).Msgf("Cannot start feedback grpc server at %v", grpcEndpoint)
 	}
-	defer file.Close()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return err
+	log.Info().Msgf("Starting server at %v...", grpcEndpoint)
+
+	grpcServer := grpc.NewServer()
+	fb.RegisterOcpFeedbackApiServer(grpcServer, grpc_server.New())
+
+	if err = grpcServer.Serve(lis); err != nil {
+		log.Fatal().Err(err).Msg("Cannot accept connections")
 	}
-	_, err = writer.Write(data)
-	return err
+
 }

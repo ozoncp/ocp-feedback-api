@@ -1,0 +1,154 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/ocp-feedback-api/ocp-feedback-api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "apiCreateFeedbackV1Response": {
+      "type": "object",
+      "properties": {
+        "feedback_id": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "apiCreateProposalV1Response": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "apiDescribeFeedbackV1Response": {
+      "type": "object",
+      "properties": {
+        "feedback": {
+          "$ref": "#/definitions/apiFeedback"
+        }
+      }
+    },
+    "apiDescribeProposalV1Response": {
+      "type": "object",
+      "properties": {
+        "proposal": {
+          "$ref": "#/definitions/apiProposal"
+        }
+      }
+    },
+    "apiFeedback": {
+      "type": "object",
+      "properties": {
+        "feedback_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "classroom_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "comment": {
+          "type": "string"
+        }
+      },
+      "title": "Feedback messages"
+    },
+    "apiListFeedbacksV1Response": {
+      "type": "object",
+      "properties": {
+        "feedbacks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiFeedback"
+          }
+        }
+      }
+    },
+    "apiListProposalsV1Response": {
+      "type": "object",
+      "properties": {
+        "proposals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiProposal"
+          }
+        }
+      }
+    },
+    "apiProposal": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "lesson_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "document_id": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "Proposal messages"
+    },
+    "apiRemoveFeedbackV1Response": {
+      "type": "object"
+    },
+    "apiRemoveProposalV1Response": {
+      "type": "object"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

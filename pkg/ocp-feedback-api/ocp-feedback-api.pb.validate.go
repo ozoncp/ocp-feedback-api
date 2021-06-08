@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = ptypes.DynamicAny{}
+	_ = anypb.Any{}
 )
 
 // Validate checks the field values on Feedback with the rules defined in the
@@ -113,9 +113,19 @@ func (m *CreateFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for UserId
+	if m.GetUserId() <= 0 {
+		return CreateFeedbackV1RequestValidationError{
+			field:  "UserId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for ClassroomId
+	if m.GetClassroomId() <= 0 {
+		return CreateFeedbackV1RequestValidationError{
+			field:  "ClassroomId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	// no validation rules for Comment
 
@@ -255,7 +265,12 @@ func (m *RemoveFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for FeedbackId
+	if m.GetFeedbackId() <= 0 {
+		return RemoveFeedbackV1RequestValidationError{
+			field:  "FeedbackId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -391,7 +406,12 @@ func (m *DescribeFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for FeedbackId
+	if m.GetFeedbackId() <= 0 {
+		return DescribeFeedbackV1RequestValidationError{
+			field:  "FeedbackId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -537,7 +557,12 @@ func (m *ListFeedbacksV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Limit
+	if m.GetLimit() <= 0 {
+		return ListFeedbacksV1RequestValidationError{
+			field:  "Limit",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	// no validation rules for Offset
 
@@ -762,11 +787,26 @@ func (m *CreateProposalV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for UserId
+	if m.GetUserId() <= 0 {
+		return CreateProposalV1RequestValidationError{
+			field:  "UserId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for LessonId
+	if m.GetLessonId() <= 0 {
+		return CreateProposalV1RequestValidationError{
+			field:  "LessonId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for DocumentId
+	if m.GetDocumentId() <= 0 {
+		return CreateProposalV1RequestValidationError{
+			field:  "DocumentId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -904,7 +944,12 @@ func (m *RemoveProposalV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for ProposalId
+	if m.GetProposalId() <= 0 {
+		return RemoveProposalV1RequestValidationError{
+			field:  "ProposalId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -1040,7 +1085,12 @@ func (m *DescribeProposalV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for ProposalId
+	if m.GetProposalId() <= 0 {
+		return DescribeProposalV1RequestValidationError{
+			field:  "ProposalId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -1186,7 +1236,12 @@ func (m *ListProposalsV1Request) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Limit
+	if m.GetLimit() <= 0 {
+		return ListProposalsV1RequestValidationError{
+			field:  "Limit",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	// no validation rules for Offset
 

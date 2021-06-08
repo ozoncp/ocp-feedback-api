@@ -1,32 +1,66 @@
 syntax = "proto3";
 
+import "google/api/annotations.proto";
+import "github.com/envoyproxy/protoc-gen-validate/validate/validate.proto";
+
 package ocp.feedback.api;
 
 option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api;ocp_feedback_api";
 
-
 service OcpFeedbackApi {
 
-    rpc CreateFeedbackV1(CreateFeedbackV1Request) returns (CreateFeedbackV1Response) {}
+    rpc CreateFeedbackV1(CreateFeedbackV1Request) returns (CreateFeedbackV1Response) {
+        option (google.api.http) = {
+            post: "/v1/feedbacks"
+        };
+    }
 
-    rpc RemoveFeedbackV1(RemoveFeedbackV1Request) returns (RemoveFeedbackV1Response) {}
+    rpc RemoveFeedbackV1(RemoveFeedbackV1Request) returns (RemoveFeedbackV1Response) {
+        option (google.api.http) = {
+            delete: "/v1/feedbacks/{feedback_id}"
+        };
+    }
 
-    rpc DescribeFeedbackV1(DescribeFeedbackV1Request) returns (DescribeFeedbackV1Response) {}
+    rpc DescribeFeedbackV1(DescribeFeedbackV1Request) returns (DescribeFeedbackV1Response) {
+        option (google.api.http) = {
+            get: "/v1/feedbacks/{feedback_id}"
+        };
+    }
 
-    rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {}
+    rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {
+        option (google.api.http) = {
+            get: "/v1/feedbacks"
+        };
+    }
 
-    rpc CreateProposalV1(CreateProposalV1Request) returns (CreateProposalV1Response) {}
+    rpc CreateProposalV1(CreateProposalV1Request) returns (CreateProposalV1Response) {
+        option (google.api.http) = {
+            post: "/v1/proposals"
+        };
+    }
 
-    rpc RemoveProposalV1(RemoveProposalV1Request) returns (RemoveProposalV1Response) {}
+    rpc RemoveProposalV1(RemoveProposalV1Request) returns (RemoveProposalV1Response) {
+        option (google.api.http) = {
+            delete: "/v1/proposals/{proposal_id}"
+        };
+    }
 
-    rpc DescribeProposalV1(DescribeProposalV1Request) returns (DescribeProposalV1Response) {}
+    rpc DescribeProposalV1(DescribeProposalV1Request) returns (DescribeProposalV1Response) {
+        option (google.api.http) = {
+            get: "/v1/proposals/{proposal_id}"
+        };
+    }
 
-    rpc ListProposalsV1(ListProposalsV1Request) returns (ListProposalsV1Response) {}
+    rpc ListProposalsV1(ListProposalsV1Request) returns (ListProposalsV1Response) {
+        option (google.api.http) = {
+            get: "/v1/proposals"
+        };
+    }
 }
 
 // Feedback messages
 message Feedback {
-    uint64 feedback_id = 1;
+    uint64 feedback_id = 1; 
     uint64 user_id = 2;
     uint64 classroom_id = 3;
     string comment = 4;
@@ -34,8 +68,8 @@ message Feedback {
 
 
 message CreateFeedbackV1Request {
-    uint64 user_id = 1;
-    uint64 classroom_id = 2;
+    uint64 user_id = 1  [(validate.rules).uint64.gt = 0];
+    uint64 classroom_id = 2  [(validate.rules).uint64.gt = 0];
     string comment = 3;
 }
 
@@ -44,7 +78,7 @@ message CreateFeedbackV1Response {
 }
 
 message RemoveFeedbackV1Request {
-    uint64 feedback_id = 1;
+    uint64 feedback_id = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message RemoveFeedbackV1Response {
@@ -53,7 +87,7 @@ message RemoveFeedbackV1Response {
 }
 
 message DescribeFeedbackV1Request {
-    uint64 feedback_id = 1;
+    uint64 feedback_id = 1  [(validate.rules).uint64.gt = 0];
 }
 
 message DescribeFeedbackV1Response {
@@ -61,7 +95,7 @@ message DescribeFeedbackV1Response {
 }
 
 message ListFeedbacksV1Request {
-    uint64 limit = 1;
+    uint64 limit = 1  [(validate.rules).uint64.gt = 0];
     uint64 offset = 2;
 }
 
@@ -78,9 +112,9 @@ message Proposal {
 }
 
 message CreateProposalV1Request {
-    uint64 user_id = 1;
-    uint64 lesson_id = 2;
-    uint64 document_id = 3;
+    uint64 user_id = 1  [(validate.rules).uint64.gt = 0];
+    uint64 lesson_id = 2  [(validate.rules).uint64.gt = 0];
+    uint64 document_id = 3  [(validate.rules).uint64.gt = 0];
 }
 
 message CreateProposalV1Response {
@@ -88,7 +122,7 @@ message CreateProposalV1Response {
 }
 
 message RemoveProposalV1Request {
-    uint64 proposal_id = 1;
+    uint64 proposal_id = 1  [(validate.rules).uint64.gt = 0];
 }
 
 message RemoveProposalV1Response {
@@ -97,7 +131,7 @@ message RemoveProposalV1Response {
 }
 
 message DescribeProposalV1Request {
-    uint64 proposal_id = 1;
+    uint64 proposal_id = 1  [(validate.rules).uint64.gt = 0];
 }
 
 message DescribeProposalV1Response {
@@ -106,7 +140,7 @@ message DescribeProposalV1Response {
 }
 
 message ListProposalsV1Request {
-    uint64 limit = 1;
+    uint64 limit = 1  [(validate.rules).uint64.gt = 0];
     uint64 offset = 2;
 }
 

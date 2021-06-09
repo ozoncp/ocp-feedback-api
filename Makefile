@@ -69,3 +69,15 @@ install-go-deps: .install-go-deps
 		go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 		go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 		go install github.com/envoyproxy/protoc-gen-validate	
+
+.PHONY: test
+test:
+		go test -race ./... -coverprofile=cover.out 
+
+.PHONY: test-coverage
+test-coverage:
+		go tool cover -func cover.out | grep total | awk '{print $3}'
+
+.PHONY: clean
+clean:
+		rm cover.out		

@@ -31,7 +31,7 @@ type saver struct {
 	entities   []models.Entity
 	alarmer    alarmer.Alarmer
 	flusher    flusher.Flusher
-	wait       chan void
+	done       chan void
 }
 
 // New returns a new Saver object
@@ -53,13 +53,13 @@ func New(capacity int, policy Policy,
 		entities:   make([]models.Entity, 0, capacity),
 		alarmer:    alarmer,
 		flusher:    flusher,
-		wait:       make(chan void),
+		done:       make(chan void),
 	}, nil
 }
 
 // WaitClosed waits intil saver is closed
 func (s *saver) WaitClosed() {
-	<-s.wait
+	<-s.done
 }
 
 // Save schedules an entity to be flushed into the repo
@@ -100,7 +100,7 @@ func (s *saver) Init(ctx context.Context) {
 				if _, err := s.flusher.Flush(ctx, s.entities); err != nil {
 					log.Printf("failed to save: %v", err)
 				}
-				s.wait <- void{}
+				s.done <- void{}
 				return
 			}
 		}

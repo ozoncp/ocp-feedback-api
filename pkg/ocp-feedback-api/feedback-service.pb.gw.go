@@ -290,7 +290,7 @@ var (
 )
 
 func request_OcpFeedbackApi_CreateMultiProposalV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateProposalV1Request
+	var protoReq CreateMultiProposalV1Request
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -306,7 +306,7 @@ func request_OcpFeedbackApi_CreateMultiProposalV1_0(ctx context.Context, marshal
 }
 
 func local_request_OcpFeedbackApi_CreateMultiProposalV1_0(ctx context.Context, marshaler runtime.Marshaler, server OcpFeedbackApiServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateProposalV1Request
+	var protoReq CreateMultiProposalV1Request
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {

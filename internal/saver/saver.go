@@ -1,6 +1,7 @@
 package saver
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -30,7 +31,6 @@ type saver struct {
 	entities   []models.Entity
 	alarmer    alarmer.Alarmer
 	flusher    flusher.Flusher
-	done       chan void
 	wait       chan void
 }
 
@@ -53,14 +53,12 @@ func New(capacity int, policy Policy,
 		entities:   make([]models.Entity, 0, capacity),
 		alarmer:    alarmer,
 		flusher:    flusher,
-		done:       make(chan void),
 		wait:       make(chan void),
 	}, nil
 }
 
-// Close notifies Saver that no more data will be flushed to the repo
-func (s *saver) Close() {
-	close(s.done)
+// WaitClosed waits intil saver is closed
+func (s *saver) WaitClosed() {
 	<-s.wait
 }
 
@@ -75,7 +73,7 @@ func (s *saver) Save(entity models.Entity) {
 // If flushing fails, remaining entities will wait until next Alarmer signal occurs
 // or until Close is called
 // If Close is called, remaining entities will be flushed to the repo
-func (s *saver) Init() {
+func (s *saver) Init(ctx context.Context) {
 	go func() {
 		for {
 			select {
@@ -92,14 +90,14 @@ func (s *saver) Init() {
 				s.entities = append(s.entities, entity)
 			case _, ok := <-s.alarmer.Alarm():
 				if ok {
-					rem, err := s.flusher.Flush(s.entities)
+					rem, err := s.flusher.Flush(ctx, s.entities)
 					s.entities = s.entities[:copy(s.entities, rem)]
 					if err != nil {
 						log.Printf("failed to save: %v", err)
 					}
 				}
-			case <-s.done:
-				if _, err := s.flusher.Flush(s.entities); err != nil {
+			case <-ctx.Done():
+				if _, err := s.flusher.Flush(ctx, s.entities); err != nil {
 					log.Printf("failed to save: %v", err)
 				}
 				s.wait <- void{}

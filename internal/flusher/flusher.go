@@ -1,6 +1,7 @@
 package flusher
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -10,7 +11,7 @@ import (
 )
 
 type Flusher interface {
-	Flush(entities []models.Entity) ([]models.Entity, error)
+	Flush(ctx context.Context, entities []models.Entity) ([]models.Entity, error)
 }
 
 type flusher struct {
@@ -31,14 +32,14 @@ func New(chunkSize int, repo repo.Repo) (*flusher, error) {
 
 // Flush tries to push given entities into the repo
 // Entities that can't be pushed will be returned along with an error
-func (f *flusher) Flush(entities []models.Entity) ([]models.Entity, error) {
+func (f *flusher) Flush(ctx context.Context, entities []models.Entity) ([]models.Entity, error) {
 	chunks, err := utils.SplitSlice(entities, f.chunkSize)
 	if err != nil {
 		return entities, fmt.Errorf("unable to flush: %v", err)
 	}
 
 	for i := 0; i < len(chunks); i++ {
-		if err := f.repo.AddEntities(chunks[i]); err != nil {
+		if err := f.repo.AddEntities(ctx, chunks[i]); err != nil {
 			return entities[i*f.chunkSize:], fmt.Errorf("unable to flush: %v", err)
 		}
 	}

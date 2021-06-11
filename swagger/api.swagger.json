@@ -49,12 +49,12 @@
         ]
       },
       "post": {
-        "operationId": "OcpFeedbackApi_CreateFeedbackV1",
+        "operationId": "OcpFeedbackApi_CreateMultiFeedbackV1",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiCreateFeedbackV1Response"
+              "$ref": "#/definitions/apiCreateMultiFeedbackV1Response"
             }
           },
           "default": {
@@ -167,7 +167,7 @@
         ]
       },
       "post": {
-        "operationId": "OcpFeedbackApi_CreateProposalV1",
+        "operationId": "OcpFeedbackApi_CreateMultiProposalV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -258,6 +258,18 @@
         }
       }
     },
+    "apiCreateMultiFeedbackV1Response": {
+      "type": "object",
+      "properties": {
+        "feedback_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
+          }
+        }
+      }
+    },
     "apiCreateProposalV1Response": {
       "type": "object",
       "properties": {
@@ -325,6 +337,39 @@
         }
       }
     },
+    "apiNewFeedback": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "classroom_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "comment": {
+          "type": "string"
+        }
+      }
+    },
+    "apiNewProposal": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "lesson_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "document_id": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
     "apiProposal": {
       "type": "object",
       "properties": {
@@ -344,8 +389,7 @@
           "type": "string",
           "format": "uint64"
         }
-      },
-      "title": "Proposal messages"
+      }
     },
     "apiRemoveFeedbackV1Response": {
       "type": "object"

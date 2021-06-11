@@ -15,6 +15,12 @@ service OcpFeedbackApi {
             post: "/v1/feedbacks"
         };
     }
+    
+    rpc CreateMultiFeedbackV1(CreateMultiFeedbackV1Request) returns (CreateMultiFeedbackV1Response) {
+        option (google.api.http) = {
+            post: "/v1/feedbacks"
+        };
+    }
 
     rpc RemoveFeedbackV1(RemoveFeedbackV1Request) returns (RemoveFeedbackV1Response) {
         option (google.api.http) = {
@@ -35,6 +41,12 @@ service OcpFeedbackApi {
     }
 
     rpc CreateProposalV1(CreateProposalV1Request) returns (CreateProposalV1Response) {
+        option (google.api.http) = {
+            post: "/v1/proposals"
+        };
+    }
+
+    rpc CreateMultiProposalV1(CreateProposalV1Request) returns (CreateProposalV1Response) {
         option (google.api.http) = {
             post: "/v1/proposals"
         };

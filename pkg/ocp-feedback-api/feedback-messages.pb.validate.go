@@ -40,13 +40,33 @@ func (m *Feedback) Validate() error {
 		return nil
 	}
 
-	// no validation rules for FeedbackId
+	if m.GetFeedbackId() <= 0 {
+		return FeedbackValidationError{
+			field:  "FeedbackId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for UserId
+	if m.GetUserId() <= 0 {
+		return FeedbackValidationError{
+			field:  "UserId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for ClassroomId
+	if m.GetClassroomId() <= 0 {
+		return FeedbackValidationError{
+			field:  "ClassroomId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for Comment
+	if utf8.RuneCountInString(m.GetComment()) < 1 {
+		return FeedbackValidationError{
+			field:  "Comment",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }
@@ -105,6 +125,92 @@ var _ interface {
 	ErrorName() string
 } = FeedbackValidationError{}
 
+// Validate checks the field values on NewFeedback with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *NewFeedback) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetUserId() <= 0 {
+		return NewFeedbackValidationError{
+			field:  "UserId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if m.GetClassroomId() <= 0 {
+		return NewFeedbackValidationError{
+			field:  "ClassroomId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetComment()) < 1 {
+		return NewFeedbackValidationError{
+			field:  "Comment",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	return nil
+}
+
+// NewFeedbackValidationError is the validation error returned by
+// NewFeedback.Validate if the designated constraints aren't met.
+type NewFeedbackValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e NewFeedbackValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e NewFeedbackValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e NewFeedbackValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e NewFeedbackValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e NewFeedbackValidationError) ErrorName() string { return "NewFeedbackValidationError" }
+
+// Error satisfies the builtin error interface
+func (e NewFeedbackValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sNewFeedback.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = NewFeedbackValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = NewFeedbackValidationError{}
+
 // Validate checks the field values on CreateFeedbackV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -113,21 +219,15 @@ func (m *CreateFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetUserId() <= 0 {
-		return CreateFeedbackV1RequestValidationError{
-			field:  "UserId",
-			reason: "value must be greater than 0",
+	if v, ok := interface{}(m.GetNewFeedback()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateFeedbackV1RequestValidationError{
+				field:  "NewFeedback",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
 	}
-
-	if m.GetClassroomId() <= 0 {
-		return CreateFeedbackV1RequestValidationError{
-			field:  "ClassroomId",
-			reason: "value must be greater than 0",
-		}
-	}
-
-	// no validation rules for Comment
 
 	return nil
 }
@@ -196,7 +296,12 @@ func (m *CreateFeedbackV1Response) Validate() error {
 		return nil
 	}
 
-	// no validation rules for FeedbackId
+	if m.GetFeedbackId() <= 0 {
+		return CreateFeedbackV1ResponseValidationError{
+			field:  "FeedbackId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -256,6 +361,157 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateFeedbackV1ResponseValidationError{}
+
+// Validate checks the field values on CreateMultiFeedbackV1Request with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreateMultiFeedbackV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetNewFeedbacks() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateMultiFeedbackV1RequestValidationError{
+					field:  fmt.Sprintf("NewFeedbacks[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// CreateMultiFeedbackV1RequestValidationError is the validation error returned
+// by CreateMultiFeedbackV1Request.Validate if the designated constraints
+// aren't met.
+type CreateMultiFeedbackV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateMultiFeedbackV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateMultiFeedbackV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateMultiFeedbackV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateMultiFeedbackV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateMultiFeedbackV1RequestValidationError) ErrorName() string {
+	return "CreateMultiFeedbackV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateMultiFeedbackV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateMultiFeedbackV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateMultiFeedbackV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateMultiFeedbackV1RequestValidationError{}
+
+// Validate checks the field values on CreateMultiFeedbackV1Response with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreateMultiFeedbackV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// CreateMultiFeedbackV1ResponseValidationError is the validation error
+// returned by CreateMultiFeedbackV1Response.Validate if the designated
+// constraints aren't met.
+type CreateMultiFeedbackV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateMultiFeedbackV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateMultiFeedbackV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateMultiFeedbackV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateMultiFeedbackV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateMultiFeedbackV1ResponseValidationError) ErrorName() string {
+	return "CreateMultiFeedbackV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateMultiFeedbackV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateMultiFeedbackV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateMultiFeedbackV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateMultiFeedbackV1ResponseValidationError{}
 
 // Validate checks the field values on RemoveFeedbackV1Request with the rules
 // defined in the proto definition for this message. If any rules are

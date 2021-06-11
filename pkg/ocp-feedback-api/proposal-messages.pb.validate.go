@@ -40,13 +40,33 @@ func (m *Proposal) Validate() error {
 		return nil
 	}
 
-	// no validation rules for ProposalId
+	if m.GetProposalId() <= 0 {
+		return ProposalValidationError{
+			field:  "ProposalId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for UserId
+	if m.GetUserId() <= 0 {
+		return ProposalValidationError{
+			field:  "UserId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for LessonId
+	if m.GetLessonId() <= 0 {
+		return ProposalValidationError{
+			field:  "LessonId",
+			reason: "value must be greater than 0",
+		}
+	}
 
-	// no validation rules for DocumentId
+	if m.GetDocumentId() <= 0 {
+		return ProposalValidationError{
+			field:  "DocumentId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -105,6 +125,92 @@ var _ interface {
 	ErrorName() string
 } = ProposalValidationError{}
 
+// Validate checks the field values on NewProposal with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *NewProposal) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetUserId() <= 0 {
+		return NewProposalValidationError{
+			field:  "UserId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if m.GetLessonId() <= 0 {
+		return NewProposalValidationError{
+			field:  "LessonId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if m.GetDocumentId() <= 0 {
+		return NewProposalValidationError{
+			field:  "DocumentId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	return nil
+}
+
+// NewProposalValidationError is the validation error returned by
+// NewProposal.Validate if the designated constraints aren't met.
+type NewProposalValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e NewProposalValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e NewProposalValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e NewProposalValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e NewProposalValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e NewProposalValidationError) ErrorName() string { return "NewProposalValidationError" }
+
+// Error satisfies the builtin error interface
+func (e NewProposalValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sNewProposal.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = NewProposalValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = NewProposalValidationError{}
+
 // Validate checks the field values on CreateProposalV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -113,24 +219,13 @@ func (m *CreateProposalV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetUserId() <= 0 {
-		return CreateProposalV1RequestValidationError{
-			field:  "UserId",
-			reason: "value must be greater than 0",
-		}
-	}
-
-	if m.GetLessonId() <= 0 {
-		return CreateProposalV1RequestValidationError{
-			field:  "LessonId",
-			reason: "value must be greater than 0",
-		}
-	}
-
-	if m.GetDocumentId() <= 0 {
-		return CreateProposalV1RequestValidationError{
-			field:  "DocumentId",
-			reason: "value must be greater than 0",
+	if v, ok := interface{}(m.GetNewProposal()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateProposalV1RequestValidationError{
+				field:  "NewProposal",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
 	}
 
@@ -201,7 +296,12 @@ func (m *CreateProposalV1Response) Validate() error {
 		return nil
 	}
 
-	// no validation rules for ProposalId
+	if m.GetProposalId() <= 0 {
+		return CreateProposalV1ResponseValidationError{
+			field:  "ProposalId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	return nil
 }
@@ -261,6 +361,157 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateProposalV1ResponseValidationError{}
+
+// Validate checks the field values on CreateMultiProposalV1Request with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreateMultiProposalV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetNewProposals() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateMultiProposalV1RequestValidationError{
+					field:  fmt.Sprintf("NewProposals[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// CreateMultiProposalV1RequestValidationError is the validation error returned
+// by CreateMultiProposalV1Request.Validate if the designated constraints
+// aren't met.
+type CreateMultiProposalV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateMultiProposalV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateMultiProposalV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateMultiProposalV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateMultiProposalV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateMultiProposalV1RequestValidationError) ErrorName() string {
+	return "CreateMultiProposalV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateMultiProposalV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateMultiProposalV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateMultiProposalV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateMultiProposalV1RequestValidationError{}
+
+// Validate checks the field values on CreateMultiProposalV1Response with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreateMultiProposalV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// CreateMultiProposalV1ResponseValidationError is the validation error
+// returned by CreateMultiProposalV1Response.Validate if the designated
+// constraints aren't met.
+type CreateMultiProposalV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateMultiProposalV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateMultiProposalV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateMultiProposalV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateMultiProposalV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateMultiProposalV1ResponseValidationError) ErrorName() string {
+	return "CreateMultiProposalV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateMultiProposalV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateMultiProposalV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateMultiProposalV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateMultiProposalV1ResponseValidationError{}
 
 // Validate checks the field values on RemoveProposalV1Request with the rules
 // defined in the proto definition for this message. If any rules are

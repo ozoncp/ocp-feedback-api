@@ -917,13 +917,6 @@ func (m *ListProposalsV1Response) Validate() error {
 		return nil
 	}
 
-	if len(m.GetProposals()) < 1 {
-		return ListProposalsV1ResponseValidationError{
-			field:  "Proposals",
-			reason: "value must contain at least 1 item(s)",
-		}
-	}
-
 	for idx, item := range m.GetProposals() {
 		_, _ = idx, item
 

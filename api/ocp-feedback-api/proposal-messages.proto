@@ -60,7 +60,7 @@ message ListProposalsV1Request {
 }
 
 message ListProposalsV1Response {
-    repeated Proposal proposals = 1 [(validate.rules).repeated.min_items = 1];
+    repeated Proposal proposals = 1;
 }
 
 

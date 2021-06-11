@@ -917,13 +917,6 @@ func (m *ListFeedbacksV1Response) Validate() error {
 		return nil
 	}
 
-	if len(m.GetFeedbacks()) < 1 {
-		return ListFeedbacksV1ResponseValidationError{
-			field:  "Feedbacks",
-			reason: "value must contain at least 1 item(s)",
-		}
-	}
-
 	for idx, item := range m.GetFeedbacks() {
 		_, _ = idx, item
 

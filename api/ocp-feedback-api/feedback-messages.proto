@@ -57,5 +57,5 @@ message ListFeedbacksV1Request {
 }
 
 message ListFeedbacksV1Response {
-    repeated Feedback feedbacks = 1 [(validate.rules).repeated.min_items = 1];
+    repeated Feedback feedbacks = 1;
 }

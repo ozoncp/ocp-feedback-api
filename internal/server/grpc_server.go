@@ -3,6 +3,7 @@ package grpc_server
 import (
 	"context"
 
+	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
@@ -11,11 +12,13 @@ import (
 
 type grpcServer struct {
 	fb.UnimplementedOcpFeedbackApiServer
+	feedbackRepo repo.Repo
+	proposalRepo repo.Repo
 }
 
 // New returns a new Feedback GRPC server
-func New() *grpcServer {
-	return &grpcServer{}
+func New(fRepo repo.Repo, pRepo repo.Repo) *grpcServer {
+	return &grpcServer{feedbackRepo: fRepo, proposalRepo: pRepo}
 }
 
 // CreateFeedbackV1 ...

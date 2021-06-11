@@ -39,7 +39,7 @@ func (f *flusher) Flush(ctx context.Context, entities []models.Entity) ([]models
 	}
 
 	for i := 0; i < len(chunks); i++ {
-		if err := f.repo.AddEntities(ctx, chunks[i]); err != nil {
+		if _, err := f.repo.AddEntities(ctx, chunks[i]...); err != nil {
 			return entities[i*f.chunkSize:], fmt.Errorf("unable to flush: %v", err)
 		}
 	}

@@ -156,7 +156,7 @@ var _ = Describe("Flusher", func() {
 
 				gomock.InOrder(
 					mockRepo.EXPECT().AddEntities(ctx, entities[:2]),
-					mockRepo.EXPECT().AddEntities(ctx, entities[2:]).Return(errors.New("add entities fails")),
+					mockRepo.EXPECT().AddEntities(ctx, entities[2:]).Return(nil, errors.New("add entities fails")),
 				)
 
 				remain, err = f.Flush(ctx, entities)
@@ -173,7 +173,7 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(2, mockRepo)
 
-				mockRepo.EXPECT().AddEntities(ctx, entities[:2]).Return(errors.New("add entities fails"))
+				mockRepo.EXPECT().AddEntities(ctx, entities[:2]).Return(nil, errors.New("add entities fails"))
 
 				remain, err = f.Flush(ctx, entities)
 				Ω(err).Should(HaveOccurred())
@@ -185,8 +185,8 @@ var _ = Describe("Flusher", func() {
 
 type repoStub struct{}
 
-func (d *repoStub) AddEntities(ctx context.Context, entity []models.Entity) error {
-	return nil
+func (d *repoStub) AddEntities(ctx context.Context, entities ...models.Entity) ([]uint64, error) {
+	return nil, nil
 }
 
 type entityStub struct {

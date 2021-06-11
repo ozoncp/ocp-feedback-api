@@ -36,15 +36,21 @@ func (m *MockBatchAdder) EXPECT() *MockBatchAdderMockRecorder {
 }
 
 // AddEntities mocks base method.
-func (m *MockBatchAdder) AddEntities(arg0 context.Context, arg1 []models.Entity) error {
+func (m *MockBatchAdder) AddEntities(arg0 context.Context, arg1 ...models.Entity) ([]uint64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddEntities", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddEntities", varargs...)
+	ret0, _ := ret[0].([]uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddEntities indicates an expected call of AddEntities.
-func (mr *MockBatchAdderMockRecorder) AddEntities(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockBatchAdderMockRecorder) AddEntities(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEntities", reflect.TypeOf((*MockBatchAdder)(nil).AddEntities), arg0, arg1)
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEntities", reflect.TypeOf((*MockBatchAdder)(nil).AddEntities), varargs...)
 }

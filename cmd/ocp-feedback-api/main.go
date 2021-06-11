@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	grpc_server "github.com/ozoncp/ocp-feedback-api/internal/server"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
 	"github.com/rs/zerolog"
@@ -31,7 +32,7 @@ func main() {
 	log.Info().Msgf("Starting server at %v...", grpcEndpoint)
 
 	grpcServer := grpc.NewServer()
-	fb.RegisterOcpFeedbackApiServer(grpcServer, grpc_server.New())
+	fb.RegisterOcpFeedbackApiServer(grpcServer, grpc_server.New(&repo.InMemoryFeedbackRepo{}, &repo.InMemoryProposalRepo{}))
 
 	if err = grpcServer.Serve(lis); err != nil {
 		log.Fatal().Err(err).Msg("Cannot accept connections")

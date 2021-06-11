@@ -219,6 +219,13 @@ func (m *CreateProposalV1Request) Validate() error {
 		return nil
 	}
 
+	if m.GetNewProposal() == nil {
+		return CreateProposalV1RequestValidationError{
+			field:  "NewProposal",
+			reason: "value is required",
+		}
+	}
+
 	if v, ok := interface{}(m.GetNewProposal()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return CreateProposalV1RequestValidationError{
@@ -370,6 +377,13 @@ func (m *CreateMultiProposalV1Request) Validate() error {
 		return nil
 	}
 
+	if len(m.GetNewProposals()) < 1 {
+		return CreateMultiProposalV1RequestValidationError{
+			field:  "NewProposals",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
+
 	for idx, item := range m.GetNewProposals() {
 		_, _ = idx, item
 
@@ -451,6 +465,13 @@ var _ interface {
 func (m *CreateMultiProposalV1Response) Validate() error {
 	if m == nil {
 		return nil
+	}
+
+	if len(m.GetProposalIds()) < 1 {
+		return CreateMultiProposalV1ResponseValidationError{
+			field:  "ProposalIds",
+			reason: "value must contain at least 1 item(s)",
+		}
 	}
 
 	return nil
@@ -736,6 +757,13 @@ func (m *DescribeProposalV1Response) Validate() error {
 		return nil
 	}
 
+	if m.GetProposal() == nil {
+		return DescribeProposalV1ResponseValidationError{
+			field:  "Proposal",
+			reason: "value is required",
+		}
+	}
+
 	if v, ok := interface{}(m.GetProposal()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return DescribeProposalV1ResponseValidationError{
@@ -887,6 +915,13 @@ var _ interface {
 func (m *ListProposalsV1Response) Validate() error {
 	if m == nil {
 		return nil
+	}
+
+	if len(m.GetProposals()) < 1 {
+		return ListProposalsV1ResponseValidationError{
+			field:  "Proposals",
+			reason: "value must contain at least 1 item(s)",
+		}
 	}
 
 	for idx, item := range m.GetProposals() {

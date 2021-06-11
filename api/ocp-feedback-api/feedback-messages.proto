@@ -19,7 +19,7 @@ message NewFeedback {
 }
 
 message CreateFeedbackV1Request {
-    NewFeedback new_feedback = 1;
+    NewFeedback new_feedback = 1 [(validate.rules).message.required = true];
 }
 
 message CreateFeedbackV1Response {
@@ -27,11 +27,11 @@ message CreateFeedbackV1Response {
 }
 
 message CreateMultiFeedbackV1Request {
-    repeated NewFeedback new_feedbacks = 1;
+    repeated NewFeedback new_feedbacks = 1 [(validate.rules).repeated.min_items = 1];
 }
 
 message CreateMultiFeedbackV1Response {
-    repeated uint64 feedback_ids = 1;
+    repeated uint64 feedback_ids = 1 [(validate.rules).repeated.min_items = 1];
 }
 
 message RemoveFeedbackV1Request {
@@ -48,7 +48,7 @@ message DescribeFeedbackV1Request {
 }
 
 message DescribeFeedbackV1Response {
-    Feedback feedback = 1;
+    Feedback feedback = 1 [(validate.rules).message.required = true];
 }
 
 message ListFeedbacksV1Request {
@@ -57,5 +57,5 @@ message ListFeedbacksV1Request {
 }
 
 message ListFeedbacksV1Response {
-    repeated Feedback feedbacks = 1;
+    repeated Feedback feedbacks = 1 [(validate.rules).repeated.min_items = 1];
 }

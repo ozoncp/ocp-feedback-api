@@ -219,6 +219,13 @@ func (m *CreateFeedbackV1Request) Validate() error {
 		return nil
 	}
 
+	if m.GetNewFeedback() == nil {
+		return CreateFeedbackV1RequestValidationError{
+			field:  "NewFeedback",
+			reason: "value is required",
+		}
+	}
+
 	if v, ok := interface{}(m.GetNewFeedback()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return CreateFeedbackV1RequestValidationError{
@@ -370,6 +377,13 @@ func (m *CreateMultiFeedbackV1Request) Validate() error {
 		return nil
 	}
 
+	if len(m.GetNewFeedbacks()) < 1 {
+		return CreateMultiFeedbackV1RequestValidationError{
+			field:  "NewFeedbacks",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
+
 	for idx, item := range m.GetNewFeedbacks() {
 		_, _ = idx, item
 
@@ -451,6 +465,13 @@ var _ interface {
 func (m *CreateMultiFeedbackV1Response) Validate() error {
 	if m == nil {
 		return nil
+	}
+
+	if len(m.GetFeedbackIds()) < 1 {
+		return CreateMultiFeedbackV1ResponseValidationError{
+			field:  "FeedbackIds",
+			reason: "value must contain at least 1 item(s)",
+		}
 	}
 
 	return nil
@@ -736,6 +757,13 @@ func (m *DescribeFeedbackV1Response) Validate() error {
 		return nil
 	}
 
+	if m.GetFeedback() == nil {
+		return DescribeFeedbackV1ResponseValidationError{
+			field:  "Feedback",
+			reason: "value is required",
+		}
+	}
+
 	if v, ok := interface{}(m.GetFeedback()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return DescribeFeedbackV1ResponseValidationError{
@@ -887,6 +915,13 @@ var _ interface {
 func (m *ListFeedbacksV1Response) Validate() error {
 	if m == nil {
 		return nil
+	}
+
+	if len(m.GetFeedbacks()) < 1 {
+		return ListFeedbacksV1ResponseValidationError{
+			field:  "Feedbacks",
+			reason: "value must contain at least 1 item(s)",
+		}
 	}
 
 	for idx, item := range m.GetFeedbacks() {

@@ -21,7 +21,7 @@ message NewProposal {
 }
 
 message CreateProposalV1Request {
-    NewProposal new_proposal = 1;
+    NewProposal new_proposal = 1 [(validate.rules).message.required = true];
 }
 
 message CreateProposalV1Response {
@@ -29,11 +29,11 @@ message CreateProposalV1Response {
 }
 
 message CreateMultiProposalV1Request {
-    repeated NewProposal new_proposals = 1;
+    repeated NewProposal new_proposals = 1 [(validate.rules).repeated.min_items = 1];
 }
 
 message CreateMultiProposalV1Response {
-    repeated uint64 proposal_ids = 1;
+    repeated uint64 proposal_ids = 1 [(validate.rules).repeated.min_items = 1];
 }
 
 message RemoveProposalV1Request {
@@ -50,7 +50,7 @@ message DescribeProposalV1Request {
 }
 
 message DescribeProposalV1Response {
-    Proposal proposal = 1;
+    Proposal proposal = 1 [(validate.rules).message.required = true];
 
 }
 
@@ -60,7 +60,7 @@ message ListProposalsV1Request {
 }
 
 message ListProposalsV1Response {
-    repeated Proposal proposals = 1;
+    repeated Proposal proposals = 1 [(validate.rules).repeated.min_items = 1];
 }
 
 

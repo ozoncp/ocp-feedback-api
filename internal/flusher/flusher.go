@@ -16,11 +16,11 @@ type Flusher interface {
 
 type flusher struct {
 	chunkSize int
-	repo      repo.Repo
+	repo      repo.BatchAdder
 }
 
 // New returns a new flusher object
-func New(chunkSize int, repo repo.Repo) (*flusher, error) {
+func New(chunkSize int, repo repo.BatchAdder) (*flusher, error) {
 	if chunkSize < 0 {
 		return nil, errors.New("chunk size cannot be negative")
 	}

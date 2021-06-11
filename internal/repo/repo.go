@@ -13,8 +13,11 @@ var ErrNotFound = errors.New("entity already exists")
 // ErrNotFound is returned when given limit and offset are invalid
 var ErrOutOfRange = errors.New("limit and offset are out of range")
 
-type Repo interface {
+type BatchAdder interface {
 	AddEntities(ctx context.Context, entities []models.Entity) error
+}
+type Repo interface {
+	AddEntity(ctx context.Context, entity models.Entity) (uint64, error)
 	RemoveEntity(ctx context.Context, entityId uint64) error
 	DescribeEntity(ctx context.Context, entityId uint64) (*models.Entity, error)
 	ListEntities(ctx context.Context, limit, offset uint64) ([]models.Entity, error)

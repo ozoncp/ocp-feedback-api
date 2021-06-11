@@ -45,7 +45,7 @@ var _ = Describe("Flusher", func() {
 		var (
 			err        error
 			controller *gomock.Controller
-			mockRepo   *mocks.MockRepo
+			mockRepo   *mocks.MockBatchAdder
 			entities   []models.Entity
 			remain     []models.Entity
 			f          flusher.Flusher
@@ -56,7 +56,7 @@ var _ = Describe("Flusher", func() {
 			// prevent vars from being mutated by It blocks
 			err = nil
 			controller = gomock.NewController(GinkgoT())
-			mockRepo = mocks.NewMockRepo(controller)
+			mockRepo = mocks.NewMockBatchAdder(controller)
 			entities = nil
 			remain = nil
 			f = nil
@@ -187,17 +187,6 @@ type repoStub struct{}
 
 func (d *repoStub) AddEntities(ctx context.Context, entity []models.Entity) error {
 	return nil
-}
-func (d *repoStub) RemoveEntity(ctx context.Context, entityId uint64) error {
-	return nil
-}
-
-func (d *repoStub) DescribeEntity(ctx context.Context, entityId uint64) (*models.Entity, error) {
-	return nil, nil
-}
-
-func (d *repoStub) ListEntities(ctx context.Context, limit, offset uint64) ([]models.Entity, error) {
-	return nil, nil
 }
 
 type entityStub struct {

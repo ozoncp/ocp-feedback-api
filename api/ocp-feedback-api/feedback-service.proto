@@ -39,5 +39,35 @@ service OcpFeedbackApi {
             get: "/v1/feedbacks"
         };
     }
+
+    rpc CreateProposalV1(CreateProposalV1Request) returns (CreateProposalV1Response) {
+        option (google.api.http) = {
+            post: "/v1/proposals"
+        };
+    }
+
+    rpc CreateMultiProposalV1(CreateMultiProposalV1Request) returns (CreateMultiProposalV1Response) {
+        option (google.api.http) = {
+            post: "/v1/proposals"
+        };
+    }
+
+    rpc RemoveProposalV1(RemoveProposalV1Request) returns (RemoveProposalV1Response) {
+        option (google.api.http) = {
+            delete: "/v1/proposals/{proposal_id}"
+        };
+    }
+
+    rpc DescribeProposalV1(DescribeProposalV1Request) returns (DescribeProposalV1Response) {
+        option (google.api.http) = {
+            get: "/v1/proposals/{proposal_id}"
+        };
+    }
+
+    rpc ListProposalsV1(ListProposalsV1Request) returns (ListProposalsV1Response) {
+        option (google.api.http) = {
+            get: "/v1/proposals"
+        };
+    }
 }
 

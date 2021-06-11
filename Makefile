@@ -15,7 +15,7 @@ PHONY: .generate
 				--swagger_out=allow_merge=true,merge_file_name=api:swagger \
 				api/ocp-feedback-api/feedback-service.proto \
 				api/ocp-feedback-api/feedback-messages.proto \
-				api/ocp-feedback-api/proposal-messages.proto
+				api/ocp-feedback-api/proposal-messages.proto 
 		mv pkg/ocp-feedback-api/github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api/* pkg/ocp-feedback-api
 		rm -rf pkg/ocp-feedback-api/github.com
 		mkdir -p cmd/ocp-feedback-api

@@ -107,7 +107,7 @@ func (s *grpcServer) DescribeProposalV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.ProposalId)
+	entity, err := s.proposalRepo.DescribeEntity(ctx, req.ProposalId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to describe a proposal: %v", err)
 	}

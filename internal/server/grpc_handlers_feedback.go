@@ -1,4 +1,4 @@
-package grpc_server
+package grpc_service
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 // CreateFeedbackV1 saves a new feedback
-func (s *grpcServer) CreateFeedbackV1(
+func (s *grpcService) CreateFeedbackV1(
 	ctx context.Context,
 	req *fb.CreateFeedbackV1Request,
 ) (*fb.CreateFeedbackV1Response, error) {
@@ -37,7 +37,7 @@ func (s *grpcServer) CreateFeedbackV1(
 }
 
 // CreateMultiFeedbackV1 creates multiple feedbacks
-func (s *grpcServer) CreateMultiFeedbackV1(
+func (s *grpcService) CreateMultiFeedbackV1(
 	ctx context.Context,
 	req *fb.CreateMultiFeedbackV1Request,
 ) (*fb.CreateMultiFeedbackV1Response, error) {
@@ -79,7 +79,7 @@ func (s *grpcServer) CreateMultiFeedbackV1(
 }
 
 // RemoveFeedbackV1 removes a feedback
-func (s *grpcServer) RemoveFeedbackV1(
+func (s *grpcService) RemoveFeedbackV1(
 	ctx context.Context,
 	req *fb.RemoveFeedbackV1Request,
 ) (*fb.RemoveFeedbackV1Response, error) {
@@ -96,7 +96,7 @@ func (s *grpcServer) RemoveFeedbackV1(
 }
 
 // DescribeFeedbackV1 returns a feedback
-func (s *grpcServer) DescribeFeedbackV1(
+func (s *grpcService) DescribeFeedbackV1(
 	ctx context.Context,
 	req *fb.DescribeFeedbackV1Request,
 ) (*fb.DescribeFeedbackV1Response, error) {
@@ -121,7 +121,7 @@ func (s *grpcServer) DescribeFeedbackV1(
 }
 
 // ListFeedbacksV1 returns a list of at most 'limit' feedbacks starting from 'offset'
-func (s *grpcServer) ListFeedbacksV1(
+func (s *grpcService) ListFeedbacksV1(
 	ctx context.Context,
 	req *fb.ListFeedbacksV1Request,
 ) (*fb.ListFeedbacksV1Response, error) {

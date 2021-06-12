@@ -18,7 +18,7 @@ func NewFeedbackRepo(db *sqlx.DB) *feedbackRepo {
 	return &feedbackRepo{db: db}
 }
 
-// AddEntities inserts feedback records into the database
+// AddEntities inserts feedbacks  into the database
 func (r *feedbackRepo) AddEntities(ctx context.Context, entities ...models.Entity) ([]uint64, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -79,7 +79,7 @@ func (r *feedbackRepo) RemoveEntity(ctx context.Context, entityId uint64) error 
 	).Scan(&dummy)
 
 	if err == sql.ErrNoRows {
-		return fmt.Errorf("no such feedback: %v", err)
+		return errors.New("no such feedback")
 	} else if err != nil {
 		return fmt.Errorf("unable to remove feedback: %v", err)
 	}
@@ -104,7 +104,7 @@ func (r *feedbackRepo) DescribeEntity(ctx context.Context, entityId uint64) (mod
 	).Scan(&fb.Id, &fb.UserId, &fb.ClassroomId, &fb.Comment)
 
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("no such feedback: %v", err)
+		return nil, errors.New("no such feedback")
 	} else if err != nil {
 		return nil, fmt.Errorf("unable to get feedback: %v", err)
 	}

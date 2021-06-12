@@ -2,7 +2,6 @@
 set -e
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-CREATE ROLE service WITH PASSWORD 'service' NOLOGIN;
 CREATE SCHEMA reaction;
 ALTER SCHEMA reaction OWNER TO postgres;
 SET search_path TO reaction;
@@ -58,10 +57,4 @@ TABLESPACE pg_default;
 ALTER TABLE proposal
     OWNER to postgres;
 
-
-GRANT CONNECT ON DATABASE postgres TO service;
-GRANT USAGE ON SCHEMA reaction TO service;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA reaction TO service;
-GRANT SELECT, INSERT, UPDATE, DELETE ON feedback TO service;
-GRANT SELECT, INSERT, UPDATE, DELETE ON proposal TO service;
 EOSQL

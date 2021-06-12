@@ -5,15 +5,15 @@ import (
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
 )
 
-const Chunks = 4
+const Chunks = 2
 
-type grpcService struct {
+type GrpcService struct {
 	fb.UnimplementedOcpFeedbackApiServer
 	feedbackRepo repo.Repo
 	proposalRepo repo.Repo
 }
 
 // New returns a new Feedback GRPC server
-func New(fRepo repo.Repo, pRepo repo.Repo) *grpcService {
-	return &grpcService{feedbackRepo: fRepo, proposalRepo: pRepo}
+func New(fRepo repo.Repo, pRepo repo.Repo) *GrpcService {
+	return &GrpcService{feedbackRepo: fRepo, proposalRepo: pRepo}
 }

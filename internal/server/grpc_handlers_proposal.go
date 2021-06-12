@@ -12,7 +12,7 @@ import (
 )
 
 // CreateProposalV1 saves a new proposal
-func (s *grpcService) CreateProposalV1(
+func (s *GrpcService) CreateProposalV1(
 	ctx context.Context,
 	req *fb.CreateProposalV1Request,
 ) (*fb.CreateProposalV1Response, error) {
@@ -38,7 +38,7 @@ func (s *grpcService) CreateProposalV1(
 }
 
 // CreateMultiProposalV1 creates multiple proposals
-func (s *grpcService) CreateMultiProposalV1(
+func (s *GrpcService) CreateMultiProposalV1(
 	ctx context.Context,
 	req *fb.CreateMultiProposalV1Request,
 ) (*fb.CreateMultiProposalV1Response, error) {
@@ -80,7 +80,7 @@ func (s *grpcService) CreateMultiProposalV1(
 }
 
 // RemoveProposalV1 removes a proposal
-func (s *grpcService) RemoveProposalV1(
+func (s *GrpcService) RemoveProposalV1(
 	ctx context.Context,
 	req *fb.RemoveProposalV1Request,
 ) (*fb.RemoveProposalV1Response, error) {
@@ -97,7 +97,7 @@ func (s *grpcService) RemoveProposalV1(
 }
 
 // DescribeProposalV1 returns a proposal
-func (s *grpcService) DescribeProposalV1(
+func (s *GrpcService) DescribeProposalV1(
 	ctx context.Context,
 	req *fb.DescribeProposalV1Request,
 ) (*fb.DescribeProposalV1Response, error) {
@@ -122,7 +122,7 @@ func (s *grpcService) DescribeProposalV1(
 }
 
 // ListProposalsV1 returns a list of at most 'limit' proposals starting from 'offset'
-func (s *grpcService) ListProposalsV1(
+func (s *GrpcService) ListProposalsV1(
 	ctx context.Context,
 	req *fb.ListProposalsV1Request,
 ) (*fb.ListProposalsV1Response, error) {

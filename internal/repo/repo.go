@@ -30,6 +30,16 @@ type InMemoryFeedbackRepo struct {
 	sequencer uint64
 }
 
+// NewInMemoryFeedbackRepo returns a new NewInMemoryFeedbackRepo
+func NewInMemoryFeedbackRepo() *InMemoryFeedbackRepo {
+	return &InMemoryFeedbackRepo{data: make([]*models.Feedback, 0)}
+}
+
+// NewInMemoryProposalRepo returns a new InMemoryProposalRepo
+func NewInMemoryProposalRepo() *InMemoryProposalRepo {
+	return &InMemoryProposalRepo{data: make([]*models.Proposal, 0)}
+}
+
 // InMemoryProposalRepo stores proposals in memory
 type InMemoryProposalRepo struct {
 	mutex     sync.RWMutex

@@ -66,7 +66,7 @@ func (r *feedbackRepo) AddEntities(ctx context.Context, entities ...models.Entit
 			}
 			return nil, fmt.Errorf("unable to insert a record: %v", err)
 		}
-		ids = append(ids, uint64(sequenceNumber))
+		ids = append(ids, sequenceNumber)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -121,7 +121,7 @@ func (r *feedbackRepo) DescribeEntity(ctx context.Context, entityId uint64) (mod
 	return fb, nil
 }
 
-// RemoveEntity retrieves a feedback from the database
+// RemoveEntity returns a list of at most 'limit' feedbacks starting from 'offset'
 func (r *feedbackRepo) ListEntities(ctx context.Context, limit, offset uint64) ([]models.Entity, error) {
 	rows, err := r.db.QueryContext(ctx,
 		"SELECT id, user_id, classroom_id, comment FROM reaction.feedback LIMIT $1 OFFSET $2;",

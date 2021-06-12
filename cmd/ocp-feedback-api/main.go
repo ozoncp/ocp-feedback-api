@@ -75,7 +75,7 @@ func main() {
 	fb.RegisterOcpFeedbackApiServer(grpcServer,
 		grpc_service.New(
 			repo.NewFeedbackRepo(db),
-			&repo.InMemoryProposalRepo{},
+			repo.NewProposalRepo(db),
 		),
 	)
 

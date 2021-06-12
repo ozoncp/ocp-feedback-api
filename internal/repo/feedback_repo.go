@@ -27,7 +27,8 @@ func (r *feedbackRepo) AddEntities(ctx context.Context, entities ...models.Entit
 
 	stmt, err := tx.PrepareContext(
 		ctx,
-		`INSERT INTO reaction.feedback (id, user_id, classroom_id, comment) VALUES ($1, $2, $3, $4);`,
+		`INSERT INTO reaction.feedback (id, user_id, classroom_id, comment) VALUES
+		 (nextval('reaction.feedback_id_seq'::regclass), $1, $2, $3) RETURNING id;`,
 	)
 
 	if err != nil {
@@ -36,7 +37,7 @@ func (r *feedbackRepo) AddEntities(ctx context.Context, entities ...models.Entit
 
 	defer stmt.Close()
 
-	var ids []uint64 // inserted record identifiers
+	var ids []uint64 // inserted identifiers
 
 	for i := 0; i < len(entities); i++ {
 		f, ok := entities[i].(*models.Feedback)
@@ -47,26 +48,15 @@ func (r *feedbackRepo) AddEntities(ctx context.Context, entities ...models.Entit
 			return nil, errors.New("underlying type must be *models.Feedback")
 		}
 
-		var sequenceNumber uint64
-		err := tx.QueryRowContext(ctx,
-			"SELECT nextval('reaction.feedback_id_seq'::regclass);",
-		).Scan(&sequenceNumber)
-
-		if err != nil {
-			if err := tx.Rollback(); err != nil {
-				return nil, fmt.Errorf("unable to rollback transaction: %v", err)
-			}
-			return nil, fmt.Errorf("unable to get next seq number: %v", err)
-		}
-
-		_, err = stmt.ExecContext(ctx, sequenceNumber, f.UserId, f.ClassroomId, f.Comment)
+		var assignedId uint64
+		err = stmt.QueryRowContext(ctx, f.UserId, f.ClassroomId, f.Comment).Scan(&assignedId)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
 				return nil, fmt.Errorf("unable to rollback transaction: %v", err)
 			}
 			return nil, fmt.Errorf("unable to insert a record: %v", err)
 		}
-		ids = append(ids, sequenceNumber)
+		ids = append(ids, assignedId)
 	}
 
 	if err := tx.Commit(); err != nil {

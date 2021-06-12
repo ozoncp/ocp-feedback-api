@@ -71,7 +71,7 @@ func (s *GrpcService) CreateMultiProposalV1(
 	for i := 0; i < len(chunks); i++ {
 		ids, err := s.proposalRepo.AddEntities(ctx, chunks[i]...)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
+			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
 		res.ProposalIds = append(res.ProposalIds, ids...)
 	}

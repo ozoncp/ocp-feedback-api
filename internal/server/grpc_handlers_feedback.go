@@ -70,7 +70,7 @@ func (s *GrpcService) CreateMultiFeedbackV1(
 	for i := 0; i < len(chunks); i++ {
 		ids, err := s.feedbackRepo.AddEntities(ctx, chunks[i]...)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
+			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
 		res.FeedbackIds = append(res.FeedbackIds, ids...)
 	}

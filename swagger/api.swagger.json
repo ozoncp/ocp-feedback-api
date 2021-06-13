@@ -12,42 +12,6 @@
   ],
   "paths": {
     "/v1/feedbacks": {
-      "get": {
-        "operationId": "OcpFeedbackApi_ListFeedbacksV1",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiListFeedbacksV1Response"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
-        "tags": [
-          "OcpFeedbackApi"
-        ]
-      },
       "post": {
         "operationId": "OcpFeedbackApi_CreateMultiFeedbackV1",
         "responses": {
@@ -139,14 +103,14 @@
         ]
       }
     },
-    "/v1/proposals": {
+    "/v1/feedbacks/{offset}/{limit}": {
       "get": {
-        "operationId": "OcpFeedbackApi_ListProposalsV1",
+        "operationId": "OcpFeedbackApi_ListFeedbacksV1",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiListProposalsV1Response"
+              "$ref": "#/definitions/apiListFeedbacksV1Response"
             }
           },
           "default": {
@@ -158,16 +122,16 @@
         },
         "parameters": [
           {
-            "name": "limit",
-            "in": "query",
-            "required": false,
+            "name": "offset",
+            "in": "path",
+            "required": true,
             "type": "string",
             "format": "uint64"
           },
           {
-            "name": "offset",
-            "in": "query",
-            "required": false,
+            "name": "limit",
+            "in": "path",
+            "required": true,
             "type": "string",
             "format": "uint64"
           }
@@ -175,7 +139,9 @@
         "tags": [
           "OcpFeedbackApi"
         ]
-      },
+      }
+    },
+    "/v1/proposals": {
       "post": {
         "operationId": "OcpFeedbackApi_CreateMultiProposalV1",
         "responses": {
@@ -200,6 +166,44 @@
             "schema": {
               "$ref": "#/definitions/apiCreateMultiProposalV1Request"
             }
+          }
+        ],
+        "tags": [
+          "OcpFeedbackApi"
+        ]
+      }
+    },
+    "/v1/proposals/{offset}/{limit}": {
+      "get": {
+        "operationId": "OcpFeedbackApi_ListProposalsV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiListProposalsV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
           }
         ],
         "tags": [

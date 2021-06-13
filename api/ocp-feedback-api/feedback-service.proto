@@ -38,7 +38,7 @@ service OcpFeedbackApi {
 
     rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {
         option (google.api.http) = {
-            get: "/v1/feedbacks"
+            get: "/v1/feedbacks/{offset}/{limit}"
         };
     }
 
@@ -70,7 +70,7 @@ service OcpFeedbackApi {
 
     rpc ListProposalsV1(ListProposalsV1Request) returns (ListProposalsV1Response) {
         option (google.api.http) = {
-            get: "/v1/proposals"
+            get: "/v1/proposals/{offset}/{limit}"
         };
     }
 }

@@ -36,6 +36,13 @@ service OcpFeedbackApi {
         };
     }
 
+    rpc UpdateFeedbackV1(UpdateFeedbackV1Request) returns (UpdateFeedbackV1Response) {
+        option (google.api.http) = {
+            patch: "/v1/feedbacks"
+            body: "feedback"
+        };
+    }
+
     rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {
         option (google.api.http) = {
             get: "/v1/feedbacks/{offset}/{limit}"
@@ -65,6 +72,13 @@ service OcpFeedbackApi {
     rpc DescribeProposalV1(DescribeProposalV1Request) returns (DescribeProposalV1Response) {
         option (google.api.http) = {
             get: "/v1/proposals/{proposal}"
+        };
+    }
+
+    rpc UpdateProposalV1(UpdateProposalV1Request) returns (UpdateProposalV1Response) {
+        option (google.api.http) = {
+            patch: "/v1/proposals"
+            body: "proposal"
         };
     }
 

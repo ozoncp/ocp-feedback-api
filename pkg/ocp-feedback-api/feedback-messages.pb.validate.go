@@ -899,3 +899,154 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListFeedbacksV1ResponseValidationError{}
+
+// Validate checks the field values on UpdateFeedbackV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateFeedbackV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetFeedback() == nil {
+		return UpdateFeedbackV1RequestValidationError{
+			field:  "Feedback",
+			reason: "value is required",
+		}
+	}
+
+	if v, ok := interface{}(m.GetFeedback()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateFeedbackV1RequestValidationError{
+				field:  "Feedback",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// UpdateFeedbackV1RequestValidationError is the validation error returned by
+// UpdateFeedbackV1Request.Validate if the designated constraints aren't met.
+type UpdateFeedbackV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateFeedbackV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateFeedbackV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateFeedbackV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateFeedbackV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateFeedbackV1RequestValidationError) ErrorName() string {
+	return "UpdateFeedbackV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateFeedbackV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateFeedbackV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateFeedbackV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateFeedbackV1RequestValidationError{}
+
+// Validate checks the field values on UpdateFeedbackV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateFeedbackV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// UpdateFeedbackV1ResponseValidationError is the validation error returned by
+// UpdateFeedbackV1Response.Validate if the designated constraints aren't met.
+type UpdateFeedbackV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateFeedbackV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateFeedbackV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateFeedbackV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateFeedbackV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateFeedbackV1ResponseValidationError) ErrorName() string {
+	return "UpdateFeedbackV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateFeedbackV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateFeedbackV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateFeedbackV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateFeedbackV1ResponseValidationError{}

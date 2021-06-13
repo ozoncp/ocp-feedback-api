@@ -53,3 +53,12 @@ message ListFeedbacksV1Request {
 message ListFeedbacksV1Response {
     repeated Feedback feedbacks = 1;
 }
+
+message UpdateFeedbackV1Request {
+    Feedback feedback = 1 [(validate.rules).message.required = true];
+}
+
+message UpdateFeedbackV1Response {
+    // some fields may be added in the future
+    // we'll use GRPC status code to indicate an error
+}

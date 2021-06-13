@@ -41,6 +41,36 @@
         "tags": [
           "OcpFeedbackApi"
         ]
+      },
+      "patch": {
+        "operationId": "OcpFeedbackApi_UpdateFeedbackV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateFeedbackV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiFeedback"
+            }
+          }
+        ],
+        "tags": [
+          "OcpFeedbackApi"
+        ]
       }
     },
     "/v1/feedbacks/{feedback}": {
@@ -165,6 +195,36 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/apiCreateMultiProposalV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "OcpFeedbackApi"
+        ]
+      },
+      "patch": {
+        "operationId": "OcpFeedbackApi_UpdateProposalV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateProposalV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiProposal"
             }
           }
         ],
@@ -420,6 +480,12 @@
       "type": "object"
     },
     "apiRemoveProposalV1Response": {
+      "type": "object"
+    },
+    "apiUpdateFeedbackV1Response": {
+      "type": "object"
+    },
+    "apiUpdateProposalV1Response": {
       "type": "object"
     },
     "protobufAny": {

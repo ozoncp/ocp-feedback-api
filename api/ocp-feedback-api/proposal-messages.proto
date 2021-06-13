@@ -57,5 +57,12 @@ message ListProposalsV1Response {
     repeated Proposal proposals = 1;
 }
 
+message UpdateProposalV1Request {
+    Proposal proposal = 1 [(validate.rules).message.required = true];
+}
 
+message UpdateProposalV1Response {
+    // some fields may be added in the future
+    // we'll use GRPC status code to indicate an error
+}
 

@@ -209,6 +209,40 @@ func local_request_OcpFeedbackApi_DescribeFeedbackV1_0(ctx context.Context, mars
 
 }
 
+func request_OcpFeedbackApi_UpdateFeedbackV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateFeedbackV1Request
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Feedback); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.UpdateFeedbackV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_OcpFeedbackApi_UpdateFeedbackV1_0(ctx context.Context, marshaler runtime.Marshaler, server OcpFeedbackApiServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateFeedbackV1Request
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Feedback); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.UpdateFeedbackV1(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_OcpFeedbackApi_ListFeedbacksV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListFeedbacksV1Request
 	var metadata runtime.ServerMetadata
@@ -461,6 +495,40 @@ func local_request_OcpFeedbackApi_DescribeProposalV1_0(ctx context.Context, mars
 
 }
 
+func request_OcpFeedbackApi_UpdateProposalV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateProposalV1Request
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Proposal); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.UpdateProposalV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_OcpFeedbackApi_UpdateProposalV1_0(ctx context.Context, marshaler runtime.Marshaler, server OcpFeedbackApiServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateProposalV1Request
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Proposal); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.UpdateProposalV1(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_OcpFeedbackApi_ListProposalsV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListProposalsV1Request
 	var metadata runtime.ServerMetadata
@@ -635,6 +703,29 @@ func RegisterOcpFeedbackApiHandlerServer(ctx context.Context, mux *runtime.Serve
 
 	})
 
+	mux.Handle("PATCH", pattern_OcpFeedbackApi_UpdateFeedbackV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_OcpFeedbackApi_UpdateFeedbackV1_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_OcpFeedbackApi_UpdateFeedbackV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_OcpFeedbackApi_ListFeedbacksV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -747,6 +838,29 @@ func RegisterOcpFeedbackApiHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_OcpFeedbackApi_DescribeProposalV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("PATCH", pattern_OcpFeedbackApi_UpdateProposalV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_OcpFeedbackApi_UpdateProposalV1_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_OcpFeedbackApi_UpdateProposalV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -894,6 +1008,26 @@ func RegisterOcpFeedbackApiHandlerClient(ctx context.Context, mux *runtime.Serve
 
 	})
 
+	mux.Handle("PATCH", pattern_OcpFeedbackApi_UpdateFeedbackV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_OcpFeedbackApi_UpdateFeedbackV1_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_OcpFeedbackApi_UpdateFeedbackV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_OcpFeedbackApi_ListFeedbacksV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -994,6 +1128,26 @@ func RegisterOcpFeedbackApiHandlerClient(ctx context.Context, mux *runtime.Serve
 
 	})
 
+	mux.Handle("PATCH", pattern_OcpFeedbackApi_UpdateProposalV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_OcpFeedbackApi_UpdateProposalV1_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_OcpFeedbackApi_UpdateProposalV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_OcpFeedbackApi_ListProposalsV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1026,6 +1180,8 @@ var (
 
 	pattern_OcpFeedbackApi_DescribeFeedbackV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "feedbacks", "feedback"}, "", runtime.AssumeColonVerbOpt(true)))
 
+	pattern_OcpFeedbackApi_UpdateFeedbackV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "feedbacks"}, "", runtime.AssumeColonVerbOpt(true)))
+
 	pattern_OcpFeedbackApi_ListFeedbacksV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "feedbacks", "offset", "limit"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpFeedbackApi_CreateProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
@@ -1035,6 +1191,8 @@ var (
 	pattern_OcpFeedbackApi_RemoveProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpFeedbackApi_DescribeProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_OcpFeedbackApi_UpdateProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpFeedbackApi_ListProposalsV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "proposals", "offset", "limit"}, "", runtime.AssumeColonVerbOpt(true)))
 )
@@ -1048,6 +1206,8 @@ var (
 
 	forward_OcpFeedbackApi_DescribeFeedbackV1_0 = runtime.ForwardResponseMessage
 
+	forward_OcpFeedbackApi_UpdateFeedbackV1_0 = runtime.ForwardResponseMessage
+
 	forward_OcpFeedbackApi_ListFeedbacksV1_0 = runtime.ForwardResponseMessage
 
 	forward_OcpFeedbackApi_CreateProposalV1_0 = runtime.ForwardResponseMessage
@@ -1057,6 +1217,8 @@ var (
 	forward_OcpFeedbackApi_RemoveProposalV1_0 = runtime.ForwardResponseMessage
 
 	forward_OcpFeedbackApi_DescribeProposalV1_0 = runtime.ForwardResponseMessage
+
+	forward_OcpFeedbackApi_UpdateProposalV1_0 = runtime.ForwardResponseMessage
 
 	forward_OcpFeedbackApi_ListProposalsV1_0 = runtime.ForwardResponseMessage
 )

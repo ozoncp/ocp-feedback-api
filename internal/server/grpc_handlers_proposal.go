@@ -61,7 +61,7 @@ func (s *GrpcService) CreateMultiProposalV1(
 		})
 	}
 
-	chunks, err := utils.SplitSlice(entities, len(entities)/Chunks) // magic number for now
+	chunks, err := utils.SplitSlice(entities, len(entities)/s.chunks) // magic number for now
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

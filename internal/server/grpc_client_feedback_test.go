@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
 	"github.com/stretchr/testify/require"
@@ -12,195 +14,329 @@ import (
 func TestClientCreateFeedback(t *testing.T) {
 	t.Parallel()
 
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal("sqlmock init failed", err)
+	}
+	defer db.Close()
+
 	serverAddress := startTestGrpcServer(t,
-		repo.NewInMemoryFeedbackRepo(), nil)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
 	client := newTestGrpcClient(t, serverAddress)
 
 	// valid request
-	newFeedback1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
-	req1 := &fb.CreateFeedbackV1Request{NewFeedback: &newFeedback1}
-	resp1, err1 := client.CreateFeedbackV1(context.Background(), req1)
-	require.NoError(t, err1)
-	require.NotNil(t, resp1)
-	require.Equal(t, uint64(1), resp1.FeedbackId)
+	nf1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
 
-	// invalid request
-	newFeedback2 := fb.NewFeedback{UserId: 0, ClassroomId: 240, Comment: "hello2"}
-	req2 := &fb.CreateFeedbackV1Request{NewFeedback: &newFeedback2}
-	resp2, err2 := client.CreateFeedbackV1(context.Background(), req2)
-	require.Error(t, err2)
-	require.Nil(t, resp2)
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.feedback").
+		ExpectQuery().
+		WithArgs(nf1.UserId, nf1.ClassroomId, nf1.Comment).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectCommit()
+
+	reqCreate := &fb.CreateFeedbackV1Request{NewFeedback: &nf1}
+	respCreate, err := client.CreateFeedbackV1(context.Background(), reqCreate)
+	require.NoError(t, err)
+	require.NotNil(t, respCreate)
+	require.Equal(t, uint64(1), respCreate.FeedbackId)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+	// invalid request, must fail on validation
+	nf2 := fb.NewFeedback{UserId: 0, ClassroomId: 240, Comment: "hello2"}
+	reqCreate = &fb.CreateFeedbackV1Request{NewFeedback: &nf2}
+	respCreate, err = client.CreateFeedbackV1(context.Background(), reqCreate)
+	require.Error(t, err)
+	require.Nil(t, respCreate)
 }
 
 func TestClientCreateMultiFeedback(t *testing.T) {
 	t.Parallel()
 
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal("sqlmock init failed", err)
+	}
+	defer db.Close()
+
 	serverAddress := startTestGrpcServer(t,
-		repo.NewInMemoryFeedbackRepo(), nil)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
 	client := newTestGrpcClient(t, serverAddress)
 
 	// valid request
-	newFeedback1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
-	newFeedback2 := fb.NewFeedback{UserId: 420, ClassroomId: 240, Comment: "hello2"}
-	newFeedback3 := fb.NewFeedback{UserId: 4200, ClassroomId: 2400, Comment: "hello3"}
-	newFeedback4 := fb.NewFeedback{UserId: 42000, ClassroomId: 24000, Comment: "hello4"}
+	nf1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
+	nf2 := fb.NewFeedback{UserId: 420, ClassroomId: 240, Comment: "hello2"}
+	nf3 := fb.NewFeedback{UserId: 4200, ClassroomId: 2400, Comment: "hello3"}
+	nf4 := fb.NewFeedback{UserId: 42000, ClassroomId: 24000, Comment: "hello4"}
 
-	req1 := &fb.CreateMultiFeedbackV1Request{NewFeedbacks: []*fb.NewFeedback{
-		&newFeedback1,
-		&newFeedback2,
-		&newFeedback3,
-		&newFeedback4,
-	},
+	reqMultiCreate := &fb.CreateMultiFeedbackV1Request{
+		NewFeedbacks: []*fb.NewFeedback{
+			&nf1,
+			&nf2,
+			&nf3,
+			&nf4,
+		},
 	}
 
-	resp, err := client.CreateMultiFeedbackV1(context.Background(), req1)
+	// sequence numbers
+	assignedNumbers := []*sqlmock.Rows{}
+	for i := 1; i <= len(reqMultiCreate.NewFeedbacks); i++ {
+		assignedNumbers = append(assignedNumbers, sqlmock.NewRows([]string{"id"}).AddRow(i))
+	}
+
+	// assume that feedbacks will be split into 2 chunks of size 2
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.feedback")
+	mock.ExpectQuery("INSERT INTO reaction.feedback").
+		WithArgs(nf1.UserId, nf1.ClassroomId, nf1.Comment).
+		WillReturnRows(assignedNumbers[0])
+	mock.ExpectQuery("INSERT INTO reaction.feedback").
+		WithArgs(nf2.UserId, nf2.ClassroomId, nf2.Comment).
+		WillReturnRows(assignedNumbers[1])
+	mock.ExpectCommit()
+
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.feedback")
+	mock.ExpectQuery("INSERT INTO reaction.feedback").
+		WithArgs(nf3.UserId, nf3.ClassroomId, nf3.Comment).
+		WillReturnRows(assignedNumbers[2])
+	mock.ExpectQuery("INSERT INTO reaction.feedback").
+		WithArgs(nf4.UserId, nf4.ClassroomId, nf4.Comment).
+		WillReturnRows(assignedNumbers[3])
+	mock.ExpectCommit()
+
+	respMultiCreate, err := client.CreateMultiFeedbackV1(context.Background(), reqMultiCreate)
 	require.NoError(t, err)
-	require.NotNil(t, resp)
-	require.Equal(t, []uint64{1, 2, 3, 4}, resp.FeedbackIds)
+	require.NotNil(t, respMultiCreate)
+	require.Equal(t, []uint64{1, 2, 3, 4}, respMultiCreate.FeedbackIds)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 
 	// invalid request
-	newFeedback5 := fb.NewFeedback{UserId: 0, ClassroomId: 24, Comment: "hello1"}
-	req2 := &fb.CreateMultiFeedbackV1Request{NewFeedbacks: []*fb.NewFeedback{
-		&newFeedback5,
-	},
+	nf5 := fb.NewFeedback{UserId: 0, ClassroomId: 24, Comment: "hello1"}
+	reqMultiCreate = &fb.CreateMultiFeedbackV1Request{
+		NewFeedbacks: []*fb.NewFeedback{
+			&nf5,
+		},
 	}
 
-	resp2, err := client.CreateMultiFeedbackV1(context.Background(), req2)
+	respMultiCreate, err = client.CreateMultiFeedbackV1(context.Background(), reqMultiCreate)
 	require.Error(t, err)
-	require.Nil(t, resp2)
+	require.Nil(t, respMultiCreate)
 }
 
 func TestClientRemoveFeedback(t *testing.T) {
 	t.Parallel()
 
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal("sqlmock init failed", err)
+	}
+	defer db.Close()
+
 	serverAddress := startTestGrpcServer(t,
-		repo.NewInMemoryFeedbackRepo(), nil)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
 	client := newTestGrpcClient(t, serverAddress)
 
-	newFeedback1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
-	newFeedback2 := fb.NewFeedback{UserId: 420, ClassroomId: 240, Comment: "hello2"}
-	newFeedback3 := fb.NewFeedback{UserId: 4200, ClassroomId: 2400, Comment: "hello3"}
-	newFeedback4 := fb.NewFeedback{UserId: 42000, ClassroomId: 24000, Comment: "hello4"}
+	nf1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
 
-	reqCreate := &fb.CreateMultiFeedbackV1Request{NewFeedbacks: []*fb.NewFeedback{
-		&newFeedback1,
-		&newFeedback2,
-		&newFeedback3,
-		&newFeedback4,
-	},
-	}
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.feedback").
+		ExpectQuery().
+		WithArgs(nf1.UserId, nf1.ClassroomId, nf1.Comment).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectCommit()
 
-	respCreate, err := client.CreateMultiFeedbackV1(context.Background(), reqCreate)
+	reqCreate := &fb.CreateFeedbackV1Request{NewFeedback: &nf1}
+	respCreate, err := client.CreateFeedbackV1(context.Background(), reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
+	require.Equal(t, uint64(1), respCreate.FeedbackId)
 
-	// remove the second newFeedback2 record
-	reqRemove1 := &fb.RemoveFeedbackV1Request{FeedbackId: respCreate.FeedbackIds[1]}
-	resRemove1, err := client.RemoveFeedbackV1(context.Background(), reqRemove1)
+	mock.ExpectQuery("SELECT 1 FROM reaction.feedback").
+		WithArgs(respCreate.FeedbackId).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectExec("DELETE FROM reaction.feedback").
+		WithArgs(respCreate.FeedbackId).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	reqRemove := &fb.RemoveFeedbackV1Request{FeedbackId: respCreate.FeedbackId}
+	respRemove, err := client.RemoveFeedbackV1(context.Background(), reqRemove)
 
 	require.NoError(t, err)
-	require.NotNil(t, resRemove1)
+	require.NotNil(t, respRemove)
 
-	// try to remove the second time
-	reqRemove2 := &fb.RemoveFeedbackV1Request{FeedbackId: respCreate.FeedbackIds[1]}
-	respRemove2, err := client.RemoveFeedbackV1(context.Background(), reqRemove2)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+	// try to remove the it the second time
+	reqRemove = &fb.RemoveFeedbackV1Request{FeedbackId: respCreate.FeedbackId}
+	respRemove, err = client.RemoveFeedbackV1(context.Background(), reqRemove)
 	require.Error(t, err)
-	require.Nil(t, respRemove2)
+	require.Nil(t, respRemove)
 
 	// invalid reqest
-	reqRemove3 := &fb.RemoveFeedbackV1Request{FeedbackId: 0}
-	respRemove3, err := client.RemoveFeedbackV1(context.Background(), reqRemove3)
+	reqRemove = &fb.RemoveFeedbackV1Request{FeedbackId: 0}
+	respRemove, err = client.RemoveFeedbackV1(context.Background(), reqRemove)
 	require.Error(t, err)
-	require.Nil(t, respRemove3)
-
+	require.Nil(t, respRemove)
 }
 
 func TestClientDescribeFeedback(t *testing.T) {
 	t.Parallel()
 
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal("sqlmock init failed", err)
+	}
+	defer db.Close()
+
 	serverAddress := startTestGrpcServer(t,
-		repo.NewInMemoryFeedbackRepo(), nil)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
 	client := newTestGrpcClient(t, serverAddress)
 
-	newFeedback1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
-	req1 := &fb.CreateFeedbackV1Request{NewFeedback: &newFeedback1}
-	resp1, err1 := client.CreateFeedbackV1(context.Background(), req1)
+	nf := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
+
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.feedback").
+		ExpectQuery().
+		WithArgs(nf.UserId, nf.ClassroomId, nf.Comment).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectCommit()
+
+	reqCreate := &fb.CreateFeedbackV1Request{NewFeedback: &nf}
+	respCreate, err1 := client.CreateFeedbackV1(context.Background(), reqCreate)
 	require.NoError(t, err1)
-	require.NotNil(t, resp1)
+	require.NotNil(t, respCreate)
+	require.Equal(t, uint64(1), respCreate.FeedbackId)
+
+	returned := sqlmock.NewRows([]string{
+		"id",
+		"user_id",
+		"classroom_id",
+		"comment"},
+	).AddRow(1, nf.UserId, nf.ClassroomId, nf.Comment)
+
+	mock.ExpectQuery("SELECT id, user_id, classroom_id, comment FROM reaction.feedback").
+		WithArgs(respCreate.FeedbackId).WillReturnRows(returned)
 
 	// valid request
-	reqDescribe1 := &fb.DescribeFeedbackV1Request{FeedbackId: resp1.FeedbackId}
-	respDescribe1, err := client.DescribeFeedbackV1(context.Background(), reqDescribe1)
+	reqDescribe := &fb.DescribeFeedbackV1Request{FeedbackId: respCreate.FeedbackId}
+	respDescribe, err := client.DescribeFeedbackV1(context.Background(), reqDescribe)
 	require.NoError(t, err)
-	require.NotNil(t, respDescribe1)
-	require.Equal(t, respDescribe1.Feedback.FeedbackId, uint64(1))
-	require.Equal(t, respDescribe1.Feedback.UserId, newFeedback1.UserId)
-	require.Equal(t, respDescribe1.Feedback.ClassroomId, newFeedback1.ClassroomId)
-	require.Equal(t, respDescribe1.Feedback.Comment, newFeedback1.Comment)
+	require.NotNil(t, respDescribe)
+	require.Equal(t, respDescribe.Feedback.FeedbackId, uint64(1))
+	require.Equal(t, respDescribe.Feedback.UserId, nf.UserId)
+	require.Equal(t, respDescribe.Feedback.ClassroomId, nf.ClassroomId)
+	require.Equal(t, respDescribe.Feedback.Comment, nf.Comment)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 
 	// missing id
-	reqDescribe2 := &fb.DescribeFeedbackV1Request{FeedbackId: resp1.FeedbackId + 1}
-	respDescribe2, err := client.DescribeFeedbackV1(context.Background(), reqDescribe2)
+	reqDescribe = &fb.DescribeFeedbackV1Request{FeedbackId: respCreate.FeedbackId + 1}
+	respDescribe, err = client.DescribeFeedbackV1(context.Background(), reqDescribe)
 	require.Error(t, err)
-	require.Nil(t, respDescribe2)
+	require.Nil(t, respDescribe)
 
 	// invalid request
-	reqDescribe3 := &fb.DescribeFeedbackV1Request{FeedbackId: 0}
-	respDescribe3, err := client.DescribeFeedbackV1(context.Background(), reqDescribe3)
+	reqDescribe = &fb.DescribeFeedbackV1Request{FeedbackId: 0}
+	respDescribe, err = client.DescribeFeedbackV1(context.Background(), reqDescribe)
 	require.Error(t, err)
-	require.Nil(t, respDescribe3)
+	require.Nil(t, respDescribe)
 }
 
 func TestClientListFeedbacks(t *testing.T) {
 	t.Parallel()
 
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal("sqlmock init failed", err)
+	}
+	defer db.Close()
+
 	serverAddress := startTestGrpcServer(t,
-		repo.NewInMemoryFeedbackRepo(), nil)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 1)
 	client := newTestGrpcClient(t, serverAddress)
 
-	newFeedback1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
-	newFeedback2 := fb.NewFeedback{UserId: 420, ClassroomId: 240, Comment: "hello2"}
-	newFeedback3 := fb.NewFeedback{UserId: 4200, ClassroomId: 2400, Comment: "hello3"}
-	newFeedback4 := fb.NewFeedback{UserId: 42000, ClassroomId: 24000, Comment: "hello4"}
+	nf1 := fb.NewFeedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
+	nf2 := fb.NewFeedback{UserId: 420, ClassroomId: 240, Comment: "hello2"}
 
-	req1 := &fb.CreateMultiFeedbackV1Request{NewFeedbacks: []*fb.NewFeedback{
-		&newFeedback1,
-		&newFeedback2,
-		&newFeedback3,
-		&newFeedback4,
+	reqCreate := &fb.CreateMultiFeedbackV1Request{NewFeedbacks: []*fb.NewFeedback{
+		&nf1,
+		&nf2,
 	},
 	}
-	resp, err := client.CreateMultiFeedbackV1(context.Background(), req1)
+
+	// assume that feedbacks won't be split into chunks
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.feedback")
+	mock.ExpectQuery("INSERT INTO reaction.feedback").
+		WithArgs(nf1.UserId, nf1.ClassroomId, nf1.Comment).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectQuery("INSERT INTO reaction.feedback").
+		WithArgs(nf2.UserId, nf2.ClassroomId, nf2.Comment).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(2))
+	mock.ExpectCommit()
+
+	respMultiCreate, err := client.CreateMultiFeedbackV1(context.Background(), reqCreate)
 	require.NoError(t, err)
-	require.NotNil(t, resp)
+	require.NotNil(t, respMultiCreate)
+
+	returned := sqlmock.NewRows([]string{
+		"id",
+		"user_id",
+		"classroom_id",
+		"comment"},
+	).AddRow(1, nf1.UserId, nf1.ClassroomId, nf1.Comment).AddRow(
+		2, nf2.UserId, nf2.ClassroomId, nf2.Comment,
+	)
+
+	mock.ExpectQuery("SELECT id, user_id, classroom_id, comment FROM reaction.feedback").
+		WithArgs(2, 0).WillReturnRows(returned)
 
 	// valid request
-	reqList1 := &fb.ListFeedbacksV1Request{Limit: 2, Offset: 1}
-	respList1, err := client.ListFeedbacksV1(context.Background(), reqList1)
+	reqList := &fb.ListFeedbacksV1Request{Limit: 2, Offset: 0}
+	respList, err := client.ListFeedbacksV1(context.Background(), reqList)
 	require.NoError(t, err)
-	require.NotNil(t, respList1)
-	require.Equal(t, len(respList1.Feedbacks), 2)
+	require.NotNil(t, respList)
+	require.Equal(t, len(respList.Feedbacks), 2)
 
-	require.Equal(t, respList1.Feedbacks[0].FeedbackId, uint64(2))
-	require.Equal(t, respList1.Feedbacks[0].UserId, newFeedback2.UserId)
-	require.Equal(t, respList1.Feedbacks[0].ClassroomId, newFeedback2.ClassroomId)
-	require.Equal(t, respList1.Feedbacks[0].Comment, newFeedback2.Comment)
+	require.Equal(t, respList.Feedbacks[0].FeedbackId, uint64(1))
+	require.Equal(t, respList.Feedbacks[0].UserId, nf1.UserId)
+	require.Equal(t, respList.Feedbacks[0].ClassroomId, nf1.ClassroomId)
+	require.Equal(t, respList.Feedbacks[0].Comment, nf1.Comment)
 
-	require.Equal(t, respList1.Feedbacks[1].FeedbackId, uint64(3))
-	require.Equal(t, respList1.Feedbacks[1].UserId, newFeedback3.UserId)
-	require.Equal(t, respList1.Feedbacks[1].ClassroomId, newFeedback3.ClassroomId)
-	require.Equal(t, respList1.Feedbacks[1].Comment, newFeedback3.Comment)
+	require.Equal(t, respList.Feedbacks[1].FeedbackId, uint64(2))
+	require.Equal(t, respList.Feedbacks[1].UserId, nf2.UserId)
+	require.Equal(t, respList.Feedbacks[1].ClassroomId, nf2.ClassroomId)
+	require.Equal(t, respList.Feedbacks[1].Comment, nf2.Comment)
+
+	mock.ExpectQuery("SELECT id, user_id, classroom_id, comment FROM reaction.feedback").
+		WithArgs(1, 4).WillReturnRows(sqlmock.NewRows([]string{
+		"id",
+		"user_id",
+		"classroom_id",
+		"comment"}))
 
 	// wrong offset
-	reqList2 := &fb.ListFeedbacksV1Request{Limit: 1, Offset: 4}
-	respList2, err := client.ListFeedbacksV1(context.Background(), reqList2)
+	reqList = &fb.ListFeedbacksV1Request{Limit: 1, Offset: 4}
+	respList, err = client.ListFeedbacksV1(context.Background(), reqList)
 	require.NoError(t, err)
-	require.NotNil(t, respList2)
-	require.Equal(t, len(respList2.Feedbacks), 0)
+	require.NotNil(t, respList)
+	require.Equal(t, len(respList.Feedbacks), 0)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 
 	// invalid request
-	reqList3 := &fb.ListFeedbacksV1Request{Limit: 0, Offset: 1}
-	respList3, err := client.ListFeedbacksV1(context.Background(), reqList3)
+	reqList = &fb.ListFeedbacksV1Request{Limit: 0, Offset: 1}
+	respList, err = client.ListFeedbacksV1(context.Background(), reqList)
 	require.Error(t, err)
-	require.Nil(t, respList3)
+	require.Nil(t, respList)
 }

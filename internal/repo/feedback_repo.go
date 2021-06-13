@@ -49,6 +49,7 @@ func (r *feedbackRepo) AddEntities(ctx context.Context, entities ...models.Entit
 		}
 
 		var assignedId uint64
+
 		err = stmt.QueryRowContext(ctx, f.UserId, f.ClassroomId, f.Comment).Scan(&assignedId)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {

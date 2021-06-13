@@ -15,10 +15,11 @@ import (
 func startTestGrpcServer(t *testing.T,
 	feedbackRepo repo.Repo,
 	proposalRepo repo.Repo,
+	chunks int,
 ) string {
 	zerolog.SetGlobalLevel(zerolog.Disabled)
 
-	service := grpc_service.New(feedbackRepo, proposalRepo)
+	service := grpc_service.New(feedbackRepo, proposalRepo, chunks)
 	grpcServer := grpc.NewServer()
 	fb.RegisterOcpFeedbackApiServer(grpcServer, service)
 	listener, err := net.Listen("tcp", ":0") // random available port

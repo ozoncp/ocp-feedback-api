@@ -18,6 +18,7 @@ import (
 
 var (
 	grpcPort int
+	chunks   int
 
 	// postgres
 	dbUserName      string
@@ -31,6 +32,7 @@ var (
 
 func init() {
 	flag.IntVar(&grpcPort, "port", 10000, "GRPC server port")
+	flag.IntVar(&chunks, "chunks", 2, "Number of chunks to split into")
 	flag.StringVar(&dbUserName, "db_user", "postgres", "Database user")
 	flag.StringVar(&dbPassword, "db_password", "mydummypassword", "Database password")
 	flag.StringVar(&dbHost, "db_host", "localhost", "Database address")
@@ -76,6 +78,7 @@ func main() {
 		grpc_service.New(
 			repo.NewFeedbackRepo(db),
 			repo.NewProposalRepo(db),
+			chunks,
 		),
 	)
 

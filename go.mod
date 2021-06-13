@@ -3,6 +3,7 @@ module github.com/ozoncp/ocp-feedback-api
 go 1.16
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.6.1 // indirect
 	github.com/golang/mock v1.5.0
 	github.com/jackc/pgx v3.6.2+incompatible // indirect

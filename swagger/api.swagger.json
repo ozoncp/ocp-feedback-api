@@ -64,12 +64,22 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateMultiFeedbackV1Request"
+            }
+          }
+        ],
         "tags": [
           "OcpFeedbackApi"
         ]
       }
     },
-    "/v1/feedbacks/{feedback_id}": {
+    "/v1/feedbacks/{feedback}": {
       "get": {
         "operationId": "OcpFeedbackApi_DescribeFeedbackV1",
         "responses": {
@@ -88,7 +98,7 @@
         },
         "parameters": [
           {
-            "name": "feedback_id",
+            "name": "feedback",
             "in": "path",
             "required": true,
             "type": "string",
@@ -117,7 +127,7 @@
         },
         "parameters": [
           {
-            "name": "feedback_id",
+            "name": "feedback",
             "in": "path",
             "required": true,
             "type": "string",
@@ -182,12 +192,22 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateMultiProposalV1Request"
+            }
+          }
+        ],
         "tags": [
           "OcpFeedbackApi"
         ]
       }
     },
-    "/v1/proposals/{proposal_id}": {
+    "/v1/proposals/{proposal}": {
       "get": {
         "operationId": "OcpFeedbackApi_DescribeProposalV1",
         "responses": {
@@ -206,7 +226,7 @@
         },
         "parameters": [
           {
-            "name": "proposal_id",
+            "name": "proposal",
             "in": "path",
             "required": true,
             "type": "string",
@@ -235,7 +255,7 @@
         },
         "parameters": [
           {
-            "name": "proposal_id",
+            "name": "proposal",
             "in": "path",
             "required": true,
             "type": "string",
@@ -252,16 +272,27 @@
     "apiCreateFeedbackV1Response": {
       "type": "object",
       "properties": {
-        "feedback_id": {
+        "feedback": {
           "type": "string",
           "format": "uint64"
+        }
+      }
+    },
+    "apiCreateMultiFeedbackV1Request": {
+      "type": "object",
+      "properties": {
+        "feedbacks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiFeedback"
+          }
         }
       }
     },
     "apiCreateMultiFeedbackV1Response": {
       "type": "object",
       "properties": {
-        "feedback_ids": {
+        "feedbacks": {
           "type": "array",
           "items": {
             "type": "string",
@@ -270,10 +301,21 @@
         }
       }
     },
+    "apiCreateMultiProposalV1Request": {
+      "type": "object",
+      "properties": {
+        "proposals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiProposal"
+          }
+        }
+      }
+    },
     "apiCreateMultiProposalV1Response": {
       "type": "object",
       "properties": {
-        "proposal_ids": {
+        "proposals": {
           "type": "array",
           "items": {
             "type": "string",
@@ -285,7 +327,7 @@
     "apiCreateProposalV1Response": {
       "type": "object",
       "properties": {
-        "proposal_id": {
+        "proposal": {
           "type": "string",
           "format": "uint64"
         }
@@ -310,7 +352,7 @@
     "apiFeedback": {
       "type": "object",
       "properties": {
-        "feedback_id": {
+        "id": {
           "type": "string",
           "format": "uint64"
         },
@@ -349,43 +391,10 @@
         }
       }
     },
-    "apiNewFeedback": {
-      "type": "object",
-      "properties": {
-        "user_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "classroom_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "comment": {
-          "type": "string"
-        }
-      }
-    },
-    "apiNewProposal": {
-      "type": "object",
-      "properties": {
-        "user_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "lesson_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "document_id": {
-          "type": "string",
-          "format": "uint64"
-        }
-      }
-    },
     "apiProposal": {
       "type": "object",
       "properties": {
-        "proposal_id": {
+        "id": {
           "type": "string",
           "format": "uint64"
         },

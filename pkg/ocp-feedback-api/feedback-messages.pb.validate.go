@@ -40,12 +40,7 @@ func (m *Feedback) Validate() error {
 		return nil
 	}
 
-	if m.GetFeedbackId() <= 0 {
-		return FeedbackValidationError{
-			field:  "FeedbackId",
-			reason: "value must be greater than 0",
-		}
-	}
+	// no validation rules for Id
 
 	if m.GetUserId() <= 0 {
 		return FeedbackValidationError{
@@ -125,92 +120,6 @@ var _ interface {
 	ErrorName() string
 } = FeedbackValidationError{}
 
-// Validate checks the field values on NewFeedback with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
-func (m *NewFeedback) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if m.GetUserId() <= 0 {
-		return NewFeedbackValidationError{
-			field:  "UserId",
-			reason: "value must be greater than 0",
-		}
-	}
-
-	if m.GetClassroomId() <= 0 {
-		return NewFeedbackValidationError{
-			field:  "ClassroomId",
-			reason: "value must be greater than 0",
-		}
-	}
-
-	if utf8.RuneCountInString(m.GetComment()) < 1 {
-		return NewFeedbackValidationError{
-			field:  "Comment",
-			reason: "value length must be at least 1 runes",
-		}
-	}
-
-	return nil
-}
-
-// NewFeedbackValidationError is the validation error returned by
-// NewFeedback.Validate if the designated constraints aren't met.
-type NewFeedbackValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e NewFeedbackValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e NewFeedbackValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e NewFeedbackValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e NewFeedbackValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e NewFeedbackValidationError) ErrorName() string { return "NewFeedbackValidationError" }
-
-// Error satisfies the builtin error interface
-func (e NewFeedbackValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sNewFeedback.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = NewFeedbackValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = NewFeedbackValidationError{}
-
 // Validate checks the field values on CreateFeedbackV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -219,17 +128,17 @@ func (m *CreateFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetNewFeedback() == nil {
+	if m.GetFeedback() == nil {
 		return CreateFeedbackV1RequestValidationError{
-			field:  "NewFeedback",
+			field:  "Feedback",
 			reason: "value is required",
 		}
 	}
 
-	if v, ok := interface{}(m.GetNewFeedback()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetFeedback()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return CreateFeedbackV1RequestValidationError{
-				field:  "NewFeedback",
+				field:  "Feedback",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -303,9 +212,9 @@ func (m *CreateFeedbackV1Response) Validate() error {
 		return nil
 	}
 
-	if m.GetFeedbackId() <= 0 {
+	if m.GetFeedback() <= 0 {
 		return CreateFeedbackV1ResponseValidationError{
-			field:  "FeedbackId",
+			field:  "Feedback",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -377,20 +286,20 @@ func (m *CreateMultiFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	if len(m.GetNewFeedbacks()) < 1 {
+	if len(m.GetFeedbacks()) < 1 {
 		return CreateMultiFeedbackV1RequestValidationError{
-			field:  "NewFeedbacks",
+			field:  "Feedbacks",
 			reason: "value must contain at least 1 item(s)",
 		}
 	}
 
-	for idx, item := range m.GetNewFeedbacks() {
+	for idx, item := range m.GetFeedbacks() {
 		_, _ = idx, item
 
 		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return CreateMultiFeedbackV1RequestValidationError{
-					field:  fmt.Sprintf("NewFeedbacks[%v]", idx),
+					field:  fmt.Sprintf("Feedbacks[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -467,9 +376,9 @@ func (m *CreateMultiFeedbackV1Response) Validate() error {
 		return nil
 	}
 
-	if len(m.GetFeedbackIds()) < 1 {
+	if len(m.GetFeedbacks()) < 1 {
 		return CreateMultiFeedbackV1ResponseValidationError{
-			field:  "FeedbackIds",
+			field:  "Feedbacks",
 			reason: "value must contain at least 1 item(s)",
 		}
 	}
@@ -542,9 +451,9 @@ func (m *RemoveFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetFeedbackId() <= 0 {
+	if m.GetFeedback() <= 0 {
 		return RemoveFeedbackV1RequestValidationError{
-			field:  "FeedbackId",
+			field:  "Feedback",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -683,9 +592,9 @@ func (m *DescribeFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetFeedbackId() <= 0 {
+	if m.GetFeedback() <= 0 {
 		return DescribeFeedbackV1RequestValidationError{
-			field:  "FeedbackId",
+			field:  "Feedback",
 			reason: "value must be greater than 0",
 		}
 	}

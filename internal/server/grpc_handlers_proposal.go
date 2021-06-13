@@ -25,16 +25,16 @@ func (s *GrpcService) CreateProposalV1(
 	}
 
 	p := &models.Proposal{
-		UserId:     req.NewProposal.UserId,
-		LessonId:   req.NewProposal.LessonId,
-		DocumentId: req.NewProposal.DocumentId,
+		UserId:     req.Proposal.UserId,
+		LessonId:   req.Proposal.LessonId,
+		DocumentId: req.Proposal.DocumentId,
 	}
 
 	ids, err := s.proposalRepo.AddEntities(ctx, p)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
-	return &fb.CreateProposalV1Response{ProposalId: ids[0]}, nil
+	return &fb.CreateProposalV1Response{Proposal: ids[0]}, nil
 }
 
 // CreateMultiProposalV1 creates multiple proposals
@@ -53,11 +53,11 @@ func (s *GrpcService) CreateMultiProposalV1(
 
 	var entities []models.Entity
 
-	for i := 0; i < len(req.NewProposals); i++ {
+	for i := 0; i < len(req.Proposals); i++ {
 		entities = append(entities, &models.Proposal{
-			UserId:     req.NewProposals[i].UserId,
-			LessonId:   req.NewProposals[i].LessonId,
-			DocumentId: req.NewProposals[i].DocumentId,
+			UserId:     req.Proposals[i].UserId,
+			LessonId:   req.Proposals[i].LessonId,
+			DocumentId: req.Proposals[i].DocumentId,
 		})
 	}
 
@@ -76,7 +76,7 @@ func (s *GrpcService) CreateMultiProposalV1(
 		if err != nil {
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
-		res.ProposalIds = append(res.ProposalIds, ids...)
+		res.Proposals = append(res.Proposals, ids...)
 	}
 	return res, nil
 
@@ -93,7 +93,7 @@ func (s *GrpcService) RemoveProposalV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := s.proposalRepo.RemoveEntity(ctx, req.ProposalId); err != nil {
+	if err := s.proposalRepo.RemoveEntity(ctx, req.Proposal); err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to delete a proposal: %v", err)
 	}
 	return &fb.RemoveProposalV1Response{}, nil
@@ -110,13 +110,13 @@ func (s *GrpcService) DescribeProposalV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	entity, err := s.proposalRepo.DescribeEntity(ctx, req.ProposalId)
+	entity, err := s.proposalRepo.DescribeEntity(ctx, req.Proposal)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to describe a proposal: %v", err)
 	}
 	p := entity.(*models.Proposal)
 	respProposal := fb.Proposal{
-		ProposalId: p.Id,
+		Id:         p.Id,
 		UserId:     p.UserId,
 		LessonId:   p.LessonId,
 		DocumentId: p.DocumentId,
@@ -145,7 +145,7 @@ func (s *GrpcService) ListProposalsV1(
 	for i := 0; i < len(entities); i++ {
 		p := entities[i].(*models.Proposal)
 		proposals = append(proposals, &fb.Proposal{
-			ProposalId: p.Id,
+			Id:         p.Id,
 			UserId:     p.UserId,
 			LessonId:   p.LessonId,
 			DocumentId: p.DocumentId,

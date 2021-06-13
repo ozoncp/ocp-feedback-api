@@ -25,15 +25,15 @@ func (s *GrpcService) CreateFeedbackV1(
 	}
 
 	f := &models.Feedback{
-		UserId:      req.NewFeedback.UserId,
-		ClassroomId: req.NewFeedback.ClassroomId,
-		Comment:     req.NewFeedback.Comment,
+		UserId:      req.Feedback.UserId,
+		ClassroomId: req.Feedback.ClassroomId,
+		Comment:     req.Feedback.Comment,
 	}
 	ids, err := s.feedbackRepo.AddEntities(ctx, f)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
-	return &fb.CreateFeedbackV1Response{FeedbackId: ids[0]}, nil
+	return &fb.CreateFeedbackV1Response{Feedback: ids[0]}, nil
 }
 
 // CreateMultiFeedbackV1 creates multiple feedbacks
@@ -52,11 +52,11 @@ func (s *GrpcService) CreateMultiFeedbackV1(
 
 	var entities []models.Entity
 
-	for i := 0; i < len(req.NewFeedbacks); i++ {
+	for i := 0; i < len(req.Feedbacks); i++ {
 		entities = append(entities, &models.Feedback{
-			UserId:      req.NewFeedbacks[i].UserId,
-			ClassroomId: req.NewFeedbacks[i].ClassroomId,
-			Comment:     req.NewFeedbacks[i].Comment,
+			UserId:      req.Feedbacks[i].UserId,
+			ClassroomId: req.Feedbacks[i].ClassroomId,
+			Comment:     req.Feedbacks[i].Comment,
 		})
 	}
 
@@ -75,7 +75,7 @@ func (s *GrpcService) CreateMultiFeedbackV1(
 		if err != nil {
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
-		res.FeedbackIds = append(res.FeedbackIds, ids...)
+		res.Feedbacks = append(res.Feedbacks, ids...)
 	}
 	return res, nil
 
@@ -92,7 +92,7 @@ func (s *GrpcService) RemoveFeedbackV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := s.feedbackRepo.RemoveEntity(ctx, req.FeedbackId); err != nil {
+	if err := s.feedbackRepo.RemoveEntity(ctx, req.Feedback); err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to delete a feedback: %v", err)
 	}
 	return &fb.RemoveFeedbackV1Response{}, nil
@@ -109,13 +109,13 @@ func (s *GrpcService) DescribeFeedbackV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.FeedbackId)
+	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.Feedback)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to describe a feedback: %v", err)
 	}
 	f := entity.(*models.Feedback)
 	respFeedback := fb.Feedback{
-		FeedbackId:  f.Id,
+		Id:          f.Id,
 		UserId:      f.UserId,
 		ClassroomId: f.ClassroomId,
 		Comment:     f.Comment,
@@ -144,7 +144,7 @@ func (s *GrpcService) ListFeedbacksV1(
 	for i := 0; i < len(entities); i++ {
 		f := entities[i].(*models.Feedback)
 		feedbacks = append(feedbacks, &fb.Feedback{
-			FeedbackId:  f.Id,
+			Id:          f.Id,
 			UserId:      f.UserId,
 			ClassroomId: f.ClassroomId,
 			Comment:     f.Comment,

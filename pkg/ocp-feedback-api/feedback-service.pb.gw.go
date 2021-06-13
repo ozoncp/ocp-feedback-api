@@ -33,18 +33,15 @@ var _ = utilities.NewDoubleArray
 var _ = descriptor.ForMessage
 var _ = metadata.Join
 
-var (
-	filter_OcpFeedbackApi_CreateFeedbackV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_OcpFeedbackApi_CreateFeedbackV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateFeedbackV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateFeedbackV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Feedback); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -57,10 +54,11 @@ func local_request_OcpFeedbackApi_CreateFeedbackV1_0(ctx context.Context, marsha
 	var protoReq CreateFeedbackV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateFeedbackV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Feedback); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -69,18 +67,15 @@ func local_request_OcpFeedbackApi_CreateFeedbackV1_0(ctx context.Context, marsha
 
 }
 
-var (
-	filter_OcpFeedbackApi_CreateMultiFeedbackV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_OcpFeedbackApi_CreateMultiFeedbackV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateMultiFeedbackV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateMultiFeedbackV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -93,10 +88,11 @@ func local_request_OcpFeedbackApi_CreateMultiFeedbackV1_0(ctx context.Context, m
 	var protoReq CreateMultiFeedbackV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateMultiFeedbackV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -116,15 +112,15 @@ func request_OcpFeedbackApi_RemoveFeedbackV1_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["feedback_id"]
+	val, ok = pathParams["feedback"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback")
 	}
 
-	protoReq.FeedbackId, err = runtime.Uint64(val)
+	protoReq.Feedback, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback", err)
 	}
 
 	msg, err := client.RemoveFeedbackV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -143,15 +139,15 @@ func local_request_OcpFeedbackApi_RemoveFeedbackV1_0(ctx context.Context, marsha
 		_   = err
 	)
 
-	val, ok = pathParams["feedback_id"]
+	val, ok = pathParams["feedback"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback")
 	}
 
-	protoReq.FeedbackId, err = runtime.Uint64(val)
+	protoReq.Feedback, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback", err)
 	}
 
 	msg, err := server.RemoveFeedbackV1(ctx, &protoReq)
@@ -170,15 +166,15 @@ func request_OcpFeedbackApi_DescribeFeedbackV1_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["feedback_id"]
+	val, ok = pathParams["feedback"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback")
 	}
 
-	protoReq.FeedbackId, err = runtime.Uint64(val)
+	protoReq.Feedback, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback", err)
 	}
 
 	msg, err := client.DescribeFeedbackV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -197,15 +193,15 @@ func local_request_OcpFeedbackApi_DescribeFeedbackV1_0(ctx context.Context, mars
 		_   = err
 	)
 
-	val, ok = pathParams["feedback_id"]
+	val, ok = pathParams["feedback"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "feedback")
 	}
 
-	protoReq.FeedbackId, err = runtime.Uint64(val)
+	protoReq.Feedback, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "feedback", err)
 	}
 
 	msg, err := server.DescribeFeedbackV1(ctx, &protoReq)
@@ -249,18 +245,15 @@ func local_request_OcpFeedbackApi_ListFeedbacksV1_0(ctx context.Context, marshal
 
 }
 
-var (
-	filter_OcpFeedbackApi_CreateProposalV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_OcpFeedbackApi_CreateProposalV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateProposalV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateProposalV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Proposal); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -273,10 +266,11 @@ func local_request_OcpFeedbackApi_CreateProposalV1_0(ctx context.Context, marsha
 	var protoReq CreateProposalV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateProposalV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq.Proposal); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -285,18 +279,15 @@ func local_request_OcpFeedbackApi_CreateProposalV1_0(ctx context.Context, marsha
 
 }
 
-var (
-	filter_OcpFeedbackApi_CreateMultiProposalV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_OcpFeedbackApi_CreateMultiProposalV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpFeedbackApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateMultiProposalV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateMultiProposalV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -309,10 +300,11 @@ func local_request_OcpFeedbackApi_CreateMultiProposalV1_0(ctx context.Context, m
 	var protoReq CreateMultiProposalV1Request
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpFeedbackApi_CreateMultiProposalV1_0); err != nil {
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -332,15 +324,15 @@ func request_OcpFeedbackApi_RemoveProposalV1_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["proposal_id"]
+	val, ok = pathParams["proposal"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
 	}
 
-	protoReq.ProposalId, err = runtime.Uint64(val)
+	protoReq.Proposal, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
 	}
 
 	msg, err := client.RemoveProposalV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -359,15 +351,15 @@ func local_request_OcpFeedbackApi_RemoveProposalV1_0(ctx context.Context, marsha
 		_   = err
 	)
 
-	val, ok = pathParams["proposal_id"]
+	val, ok = pathParams["proposal"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
 	}
 
-	protoReq.ProposalId, err = runtime.Uint64(val)
+	protoReq.Proposal, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
 	}
 
 	msg, err := server.RemoveProposalV1(ctx, &protoReq)
@@ -386,15 +378,15 @@ func request_OcpFeedbackApi_DescribeProposalV1_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["proposal_id"]
+	val, ok = pathParams["proposal"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
 	}
 
-	protoReq.ProposalId, err = runtime.Uint64(val)
+	protoReq.Proposal, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
 	}
 
 	msg, err := client.DescribeProposalV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -413,15 +405,15 @@ func local_request_OcpFeedbackApi_DescribeProposalV1_0(ctx context.Context, mars
 		_   = err
 	)
 
-	val, ok = pathParams["proposal_id"]
+	val, ok = pathParams["proposal"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
 	}
 
-	protoReq.ProposalId, err = runtime.Uint64(val)
+	protoReq.Proposal, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
 	}
 
 	msg, err := server.DescribeProposalV1(ctx, &protoReq)
@@ -950,9 +942,9 @@ var (
 
 	pattern_OcpFeedbackApi_CreateMultiFeedbackV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "feedbacks"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpFeedbackApi_RemoveFeedbackV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "feedbacks", "feedback_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpFeedbackApi_RemoveFeedbackV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "feedbacks", "feedback"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpFeedbackApi_DescribeFeedbackV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "feedbacks", "feedback_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpFeedbackApi_DescribeFeedbackV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "feedbacks", "feedback"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpFeedbackApi_ListFeedbacksV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "feedbacks"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -960,9 +952,9 @@ var (
 
 	pattern_OcpFeedbackApi_CreateMultiProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpFeedbackApi_RemoveProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpFeedbackApi_RemoveProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpFeedbackApi_DescribeProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpFeedbackApi_DescribeProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpFeedbackApi_ListProposalsV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
 )

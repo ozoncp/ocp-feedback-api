@@ -25,7 +25,7 @@ func TestClientCreateProposal(t *testing.T) {
 	client := newTestGrpcClient(t, serverAddress)
 
 	// valid request
-	np1 := fb.NewProposal{UserId: 10, LessonId: 20, DocumentId: 30}
+	np1 := fb.Proposal{UserId: 10, LessonId: 20, DocumentId: 30}
 
 	mock.ExpectBegin()
 	mock.ExpectPrepare("INSERT INTO reaction.proposal").
@@ -34,19 +34,19 @@ func TestClientCreateProposal(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectCommit()
 
-	reqCreate := &fb.CreateProposalV1Request{NewProposal: &np1}
+	reqCreate := &fb.CreateProposalV1Request{Proposal: &np1}
 	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
-	require.Equal(t, uint64(1), respCreate.ProposalId)
+	require.Equal(t, uint64(1), respCreate.Proposal)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 
 	// invalid request, must fail on validation
-	np2 := fb.NewProposal{UserId: 0, LessonId: 20, DocumentId: 30}
-	reqCreate = &fb.CreateProposalV1Request{NewProposal: &np2}
+	np2 := fb.Proposal{UserId: 0, LessonId: 20, DocumentId: 30}
+	reqCreate = &fb.CreateProposalV1Request{Proposal: &np2}
 	respCreate, err = client.CreateProposalV1(context.Background(), reqCreate)
 	require.Error(t, err)
 	require.Nil(t, respCreate)
@@ -66,13 +66,13 @@ func TestClientCreateMultiProposal(t *testing.T) {
 	client := newTestGrpcClient(t, serverAddress)
 
 	// valid request
-	pr1 := fb.NewProposal{UserId: 42, LessonId: 24, DocumentId: 50}
-	pr2 := fb.NewProposal{UserId: 420, LessonId: 240, DocumentId: 500}
-	pr3 := fb.NewProposal{UserId: 4200, LessonId: 2400, DocumentId: 5000}
-	pr4 := fb.NewProposal{UserId: 42000, LessonId: 24000, DocumentId: 50000}
+	pr1 := fb.Proposal{UserId: 42, LessonId: 24, DocumentId: 50}
+	pr2 := fb.Proposal{UserId: 420, LessonId: 240, DocumentId: 500}
+	pr3 := fb.Proposal{UserId: 4200, LessonId: 2400, DocumentId: 5000}
+	pr4 := fb.Proposal{UserId: 42000, LessonId: 24000, DocumentId: 50000}
 
 	reqMultiCreate := &fb.CreateMultiProposalV1Request{
-		NewProposals: []*fb.NewProposal{
+		Proposals: []*fb.Proposal{
 			&pr1,
 			&pr2,
 			&pr3,
@@ -82,7 +82,7 @@ func TestClientCreateMultiProposal(t *testing.T) {
 
 	// sequence numbers
 	assignedNumbers := []*sqlmock.Rows{}
-	for i := 1; i <= len(reqMultiCreate.NewProposals); i++ {
+	for i := 1; i <= len(reqMultiCreate.Proposals); i++ {
 		assignedNumbers = append(assignedNumbers, sqlmock.NewRows([]string{"id"}).AddRow(i))
 	}
 
@@ -110,16 +110,16 @@ func TestClientCreateMultiProposal(t *testing.T) {
 	respMultiCreate, err := client.CreateMultiProposalV1(context.Background(), reqMultiCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respMultiCreate)
-	require.Equal(t, []uint64{1, 2, 3, 4}, respMultiCreate.ProposalIds)
+	require.Equal(t, []uint64{1, 2, 3, 4}, respMultiCreate.Proposals)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 
 	// invalid request
-	np5 := fb.NewProposal{UserId: 0, LessonId: 24, DocumentId: 100}
+	np5 := fb.Proposal{UserId: 0, LessonId: 24, DocumentId: 100}
 	reqMultiCreate = &fb.CreateMultiProposalV1Request{
-		NewProposals: []*fb.NewProposal{
+		Proposals: []*fb.Proposal{
 			&np5,
 		},
 	}
@@ -142,7 +142,7 @@ func TestClientRemoveProposal(t *testing.T) {
 		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
 
-	np1 := fb.NewProposal{UserId: 10, LessonId: 20, DocumentId: 30}
+	np1 := fb.Proposal{UserId: 10, LessonId: 20, DocumentId: 30}
 
 	mock.ExpectBegin()
 	mock.ExpectPrepare("INSERT INTO reaction.proposal").
@@ -151,18 +151,18 @@ func TestClientRemoveProposal(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectCommit()
 
-	reqCreate := &fb.CreateProposalV1Request{NewProposal: &np1}
+	reqCreate := &fb.CreateProposalV1Request{Proposal: &np1}
 	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
-	require.Equal(t, uint64(1), respCreate.ProposalId)
+	require.Equal(t, uint64(1), respCreate.Proposal)
 
 	mock.ExpectQuery("SELECT 1 FROM reaction.proposal").
-		WithArgs(respCreate.ProposalId).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+		WithArgs(respCreate.Proposal).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectExec("DELETE FROM reaction.proposal").
-		WithArgs(respCreate.ProposalId).WillReturnResult(sqlmock.NewResult(1, 1))
+		WithArgs(respCreate.Proposal).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	reqRemove := &fb.RemoveProposalV1Request{ProposalId: respCreate.ProposalId}
+	reqRemove := &fb.RemoveProposalV1Request{Proposal: respCreate.Proposal}
 	respRemove, err := client.RemoveProposalV1(context.Background(), reqRemove)
 	require.NoError(t, err)
 	require.NotNil(t, respRemove)
@@ -172,13 +172,13 @@ func TestClientRemoveProposal(t *testing.T) {
 	}
 
 	// try to remove the it the second time
-	reqRemove = &fb.RemoveProposalV1Request{ProposalId: respCreate.ProposalId}
+	reqRemove = &fb.RemoveProposalV1Request{Proposal: respCreate.Proposal}
 	respRemove, err = client.RemoveProposalV1(context.Background(), reqRemove)
 	require.Error(t, err)
 	require.Nil(t, respRemove)
 
 	// invalid reqest
-	reqRemove = &fb.RemoveProposalV1Request{ProposalId: 0}
+	reqRemove = &fb.RemoveProposalV1Request{Proposal: 0}
 	respRemove, err = client.RemoveProposalV1(context.Background(), reqRemove)
 	require.Error(t, err)
 	require.Nil(t, respRemove)
@@ -197,7 +197,7 @@ func TestClientDescribeProposal(t *testing.T) {
 		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
 
-	np := fb.NewProposal{UserId: 10, LessonId: 20, DocumentId: 30}
+	np := fb.Proposal{UserId: 10, LessonId: 20, DocumentId: 30}
 
 	mock.ExpectBegin()
 	mock.ExpectPrepare("INSERT INTO reaction.proposal").
@@ -206,11 +206,11 @@ func TestClientDescribeProposal(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectCommit()
 
-	reqCreate := &fb.CreateProposalV1Request{NewProposal: &np}
+	reqCreate := &fb.CreateProposalV1Request{Proposal: &np}
 	respCreate, err1 := client.CreateProposalV1(context.Background(), reqCreate)
 	require.NoError(t, err1)
 	require.NotNil(t, respCreate)
-	require.Equal(t, uint64(1), respCreate.ProposalId)
+	require.Equal(t, uint64(1), respCreate.Proposal)
 
 	returned := sqlmock.NewRows([]string{
 		"id",
@@ -220,14 +220,14 @@ func TestClientDescribeProposal(t *testing.T) {
 	).AddRow(1, np.UserId, np.LessonId, np.DocumentId)
 
 	mock.ExpectQuery("SELECT id, user_id, lesson_id, document_id FROM reaction.proposal").
-		WithArgs(respCreate.ProposalId).WillReturnRows(returned)
+		WithArgs(respCreate.Proposal).WillReturnRows(returned)
 
 	// valid request
-	reqDescribe := &fb.DescribeProposalV1Request{ProposalId: respCreate.ProposalId}
+	reqDescribe := &fb.DescribeProposalV1Request{Proposal: respCreate.Proposal}
 	respDescribe, err := client.DescribeProposalV1(context.Background(), reqDescribe)
 	require.NoError(t, err)
 	require.NotNil(t, respDescribe)
-	require.Equal(t, respDescribe.Proposal.ProposalId, uint64(1))
+	require.Equal(t, respDescribe.Proposal.Id, uint64(1))
 	require.Equal(t, respDescribe.Proposal.UserId, np.UserId)
 	require.Equal(t, respDescribe.Proposal.LessonId, np.LessonId)
 	require.Equal(t, respDescribe.Proposal.DocumentId, np.DocumentId)
@@ -237,13 +237,13 @@ func TestClientDescribeProposal(t *testing.T) {
 	}
 
 	// missing id
-	reqDescribe = &fb.DescribeProposalV1Request{ProposalId: respCreate.ProposalId + 1}
+	reqDescribe = &fb.DescribeProposalV1Request{Proposal: respCreate.Proposal + 1}
 	respDescribe, err = client.DescribeProposalV1(context.Background(), reqDescribe)
 	require.Error(t, err)
 	require.Nil(t, respDescribe)
 
 	// invalid request
-	reqDescribe = &fb.DescribeProposalV1Request{ProposalId: 0}
+	reqDescribe = &fb.DescribeProposalV1Request{Proposal: 0}
 	respDescribe, err = client.DescribeProposalV1(context.Background(), reqDescribe)
 	require.Error(t, err)
 	require.Nil(t, respDescribe)
@@ -262,10 +262,10 @@ func TestClientListProposal(t *testing.T) {
 		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 1)
 	client := newTestGrpcClient(t, serverAddress)
 
-	np1 := fb.NewProposal{UserId: 42, LessonId: 24, DocumentId: 50}
-	np2 := fb.NewProposal{UserId: 420, LessonId: 240, DocumentId: 500}
+	np1 := fb.Proposal{UserId: 42, LessonId: 24, DocumentId: 50}
+	np2 := fb.Proposal{UserId: 420, LessonId: 240, DocumentId: 500}
 
-	reqCreate := &fb.CreateMultiProposalV1Request{NewProposals: []*fb.NewProposal{
+	reqCreate := &fb.CreateMultiProposalV1Request{Proposals: []*fb.Proposal{
 		&np1,
 		&np2,
 	},
@@ -305,12 +305,12 @@ func TestClientListProposal(t *testing.T) {
 	require.NotNil(t, respList)
 	require.Equal(t, len(respList.Proposals), 2)
 
-	require.Equal(t, respList.Proposals[0].ProposalId, uint64(1))
+	require.Equal(t, respList.Proposals[0].Id, uint64(1))
 	require.Equal(t, respList.Proposals[0].UserId, np1.UserId)
 	require.Equal(t, respList.Proposals[0].LessonId, np1.LessonId)
 	require.Equal(t, respList.Proposals[0].DocumentId, np1.DocumentId)
 
-	require.Equal(t, respList.Proposals[1].ProposalId, uint64(2))
+	require.Equal(t, respList.Proposals[1].Id, uint64(2))
 	require.Equal(t, respList.Proposals[1].UserId, np2.UserId)
 	require.Equal(t, respList.Proposals[1].LessonId, np2.LessonId)
 	require.Equal(t, respList.Proposals[1].DocumentId, np2.DocumentId)

@@ -172,7 +172,7 @@ func (s *GrpcService) UpdateProposalV1(
 		DocumentId: req.Proposal.DocumentId,
 	}
 
-	if err := s.feedbackRepo.UpdateEntity(ctx, p); err != nil {
+	if err := s.proposalRepo.UpdateEntity(ctx, p); err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to update a proposal: %v", err)
 	}
 	return &fb.UpdateProposalV1Response{}, nil

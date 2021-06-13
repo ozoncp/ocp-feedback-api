@@ -339,3 +339,53 @@ func TestClientListProposal(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, respList)
 }
+
+func TestClientUpdateProposal(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal("sqlmock init failed", err)
+	}
+	defer db.Close()
+
+	serverAddress := startTestGrpcServer(t,
+		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
+	client := newTestGrpcClient(t, serverAddress)
+
+	np1 := fb.Proposal{UserId: 42, LessonId: 24, DocumentId: 100}
+
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.proposal").
+		ExpectQuery().
+		WithArgs(np1.UserId, np1.LessonId, np1.DocumentId).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectCommit()
+
+	reqCreate := &fb.CreateProposalV1Request{Proposal: &np1}
+	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
+	require.NoError(t, err)
+	require.NotNil(t, respCreate)
+	require.Equal(t, uint64(1), respCreate.Proposal)
+
+	mock.ExpectQuery("SELECT 1 FROM reaction.proposal").
+		WithArgs(respCreate.Proposal).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	np2 := fb.Proposal{Id: 1, UserId: 10, LessonId: 20, DocumentId: 30}
+	mock.ExpectExec("UPDATE reaction.proposal").
+		WithArgs(np2.UserId, np2.LessonId, np2.DocumentId, np2.Id).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	reqUpdate := &fb.UpdateProposalV1Request{Proposal: &np2}
+	respUpdate, err := client.UpdateProposalV1(context.Background(), reqUpdate)
+	require.NoError(t, err)
+	require.NotNil(t, respUpdate)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+	// invalid reqest
+	reqUpdate = &fb.UpdateProposalV1Request{}
+	respUpdate, err = client.UpdateProposalV1(context.Background(), reqUpdate)
+	require.Error(t, err)
+	require.Nil(t, respUpdate)
+}

@@ -155,7 +155,7 @@ func (r *proposalRepo) UpdateEntity(ctx context.Context, entity models.Entity) e
 	if err == sql.ErrNoRows {
 		return errors.New("no such proposal")
 	} else if err != nil {
-		return fmt.Errorf("unable to remove feedback: %v", err)
+		return fmt.Errorf("unable to update feedback: %v", err)
 	}
 
 	_, err = r.db.ExecContext(ctx,

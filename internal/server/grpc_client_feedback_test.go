@@ -340,3 +340,53 @@ func TestClientListFeedbacks(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, respList)
 }
+
+func TestClientUpdateFeedback(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal("sqlmock init failed", err)
+	}
+	defer db.Close()
+
+	serverAddress := startTestGrpcServer(t,
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
+	client := newTestGrpcClient(t, serverAddress)
+
+	nf1 := fb.Feedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
+
+	mock.ExpectBegin()
+	mock.ExpectPrepare("INSERT INTO reaction.feedback").
+		ExpectQuery().
+		WithArgs(nf1.UserId, nf1.ClassroomId, nf1.Comment).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	mock.ExpectCommit()
+
+	reqCreate := &fb.CreateFeedbackV1Request{Feedback: &nf1}
+	respCreate, err := client.CreateFeedbackV1(context.Background(), reqCreate)
+	require.NoError(t, err)
+	require.NotNil(t, respCreate)
+	require.Equal(t, uint64(1), respCreate.Feedback)
+
+	mock.ExpectQuery("SELECT 1 FROM reaction.feedback").
+		WithArgs(respCreate.Feedback).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	nf2 := fb.Feedback{Id: 1, UserId: 10, ClassroomId: 20, Comment: "hi"}
+	mock.ExpectExec("UPDATE reaction.feedback").
+		WithArgs(nf2.UserId, nf2.ClassroomId, nf2.Comment, nf2.Id).WillReturnResult(sqlmock.NewResult(0, 1))
+
+	reqUpdate := &fb.UpdateFeedbackV1Request{Feedback: &nf2}
+	respUpdate, err := client.UpdateFeedbackV1(context.Background(), reqUpdate)
+	require.NoError(t, err)
+	require.NotNil(t, respUpdate)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+	// invalid reqest
+	reqUpdate = &fb.UpdateFeedbackV1Request{}
+	respUpdate, err = client.UpdateFeedbackV1(context.Background(), reqUpdate)
+	require.Error(t, err)
+	require.Nil(t, respUpdate)
+}

@@ -138,3 +138,23 @@ func (r *feedbackRepo) ListEntities(ctx context.Context, limit, offset uint64) (
 
 	return feedbacks, nil
 }
+
+// UpdateEntity updates a feedback
+func (r *feedbackRepo) UpdateEntity(ctx context.Context, entity models.Entity) error {
+
+	f, ok := entity.(*models.Feedback)
+	if !ok {
+		return errors.New("underlying type must be *models.Feedback")
+	}
+	_, err := r.db.ExecContext(ctx,
+		"UPDATE reaction.feedback SET user_id=$1, classroom_id=$2, comment=$3 WHERE id=$4;",
+		f.UserId, f.ClassroomId, f.Comment, f.Id,
+	)
+
+	if err == sql.ErrNoRows {
+		return errors.New("no such feedback")
+	} else if err != nil {
+		return fmt.Errorf("unable to update feedback: %v", err)
+	}
+	return nil
+}

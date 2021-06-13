@@ -20,4 +20,5 @@ type Repo interface {
 	RemoveEntity(ctx context.Context, entityId uint64) error
 	DescribeEntity(ctx context.Context, entityId uint64) (models.Entity, error)
 	ListEntities(ctx context.Context, limit, offset uint64) ([]models.Entity, error)
+	UpdateEntity(ctx context.Context, entity models.Entity) error
 }

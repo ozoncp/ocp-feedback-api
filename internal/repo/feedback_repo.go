@@ -146,7 +146,21 @@ func (r *feedbackRepo) UpdateEntity(ctx context.Context, entity models.Entity) e
 	if !ok {
 		return errors.New("underlying type must be *models.Feedback")
 	}
-	_, err := r.db.ExecContext(ctx,
+
+	// check if record exists
+	var dummy uint64
+	err := r.db.QueryRowContext(ctx,
+		"SELECT 1 FROM reaction.feedback WHERE id=$1;",
+		f.Id,
+	).Scan(&dummy)
+
+	if err == sql.ErrNoRows {
+		return errors.New("no such feedback")
+	} else if err != nil {
+		return fmt.Errorf("unable to remove feedback: %v", err)
+	}
+
+	_, err = r.db.ExecContext(ctx,
 		"UPDATE reaction.feedback SET user_id=$1, classroom_id=$2, comment=$3 WHERE id=$4;",
 		f.UserId, f.ClassroomId, f.Comment, f.Id,
 	)

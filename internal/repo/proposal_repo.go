@@ -137,14 +137,28 @@ func (r *proposalRepo) ListEntities(ctx context.Context, limit, offset uint64) (
 	return proposals, nil
 }
 
-// UpdateEntity updates a feedback
+// UpdateEntity updates a proposal
 func (r *proposalRepo) UpdateEntity(ctx context.Context, entity models.Entity) error {
 
 	p, ok := entity.(*models.Proposal)
 	if !ok {
 		return errors.New("underlying type must be *models.Proposal")
 	}
-	_, err := r.db.ExecContext(ctx,
+
+	// check if record exists
+	var dummy uint64
+	err := r.db.QueryRowContext(ctx,
+		"SELECT 1 FROM reaction.proposal WHERE id=$1;",
+		p.Id,
+	).Scan(&dummy)
+
+	if err == sql.ErrNoRows {
+		return errors.New("no such proposal")
+	} else if err != nil {
+		return fmt.Errorf("unable to remove feedback: %v", err)
+	}
+
+	_, err = r.db.ExecContext(ctx,
 		"UPDATE reaction.proposal SET user_id=$1, lesson_id=$2, document_id=$3 WHERE id=$4;",
 		p.UserId, p.LessonId, p.DocumentId, p.Id,
 	)

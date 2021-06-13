@@ -60,13 +60,16 @@ func (s *GrpcService) CreateMultiFeedbackV1(
 		})
 	}
 
-	chunks, err := utils.SplitSlice(entities, len(entities)/s.chunks) // magic number for now
+	chunks, err := utils.SplitSlice(entities, len(entities)/s.chunks)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	res := &fb.CreateMultiFeedbackV1Response{}
 
+	// try to insert into database one chunk per transaction
+	// if transaction fails, only those IDs which have been already added successfully
+	// will be returned to the client
 	for i := 0; i < len(chunks); i++ {
 		ids, err := s.feedbackRepo.AddEntities(ctx, chunks[i]...)
 		if err != nil {

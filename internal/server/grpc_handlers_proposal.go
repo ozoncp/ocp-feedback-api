@@ -153,3 +153,27 @@ func (s *GrpcService) ListProposalsV1(
 	}
 	return &fb.ListProposalsV1Response{Proposals: proposals}, nil
 }
+
+// UpdatePropsalV1 updates a proposal
+func (s *GrpcService) UpdateProposalV1(
+	ctx context.Context,
+	req *fb.UpdateProposalV1Request,
+) (*fb.UpdateProposalV1Response, error) {
+	log.Info().Msgf("Handle request for UpdateProposalV1: %v", req)
+
+	if err := req.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	p := &models.Proposal{
+		Id:         req.Proposal.Id,
+		UserId:     req.Proposal.UserId,
+		LessonId:   req.Proposal.LessonId,
+		DocumentId: req.Proposal.DocumentId,
+	}
+
+	if err := s.feedbackRepo.UpdateEntity(ctx, p); err != nil {
+		return nil, status.Errorf(codes.NotFound, "unable to update a proposal: %v", err)
+	}
+	return &fb.UpdateProposalV1Response{}, nil
+}

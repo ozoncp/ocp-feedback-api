@@ -152,3 +152,27 @@ func (s *GrpcService) ListFeedbacksV1(
 	}
 	return &fb.ListFeedbacksV1Response{Feedbacks: feedbacks}, nil
 }
+
+// UpdateFeedbackV1 updates a feedback
+func (s *GrpcService) UpdateFeedbackV1(
+	ctx context.Context,
+	req *fb.UpdateFeedbackV1Request,
+) (*fb.UpdateFeedbackV1Response, error) {
+	log.Info().Msgf("Handle request for UpdateFeedbackV1: %v", req)
+
+	if err := req.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	f := &models.Feedback{
+		Id:          req.Feedback.Id,
+		UserId:      req.Feedback.UserId,
+		ClassroomId: req.Feedback.ClassroomId,
+		Comment:     req.Feedback.Comment,
+	}
+
+	if err := s.feedbackRepo.UpdateEntity(ctx, f); err != nil {
+		return nil, status.Errorf(codes.NotFound, "unable to update a feedback: %v", err)
+	}
+	return &fb.UpdateFeedbackV1Response{}, nil
+}

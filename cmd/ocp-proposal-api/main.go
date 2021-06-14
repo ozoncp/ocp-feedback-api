@@ -9,8 +9,8 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
-	feedback_service "github.com/ozoncp/ocp-feedback-api/internal/server/feedback_grpc"
-	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
+	proposal_service "github.com/ozoncp/ocp-feedback-api/internal/server/proposal_grpc"
+	pr "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -70,13 +70,13 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Cannot start feedback grpc server at %v", grpcEndpoint)
 	}
-	log.Info().Msgf("Starting feedback service at %v...", grpcEndpoint)
+	log.Info().Msgf("Starting proposal service at %v...", grpcEndpoint)
 
 	grpcServer := grpc.NewServer()
 
-	fb.RegisterOcpFeedbackApiServer(grpcServer,
-		feedback_service.New(
-			repo.NewFeedbackRepo(db),
+	pr.RegisterOcpProposalApiServer(grpcServer,
+		proposal_service.New(
+			repo.NewProposalRepo(db),
 			chunks,
 		),
 	)

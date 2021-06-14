@@ -1,14 +1,18 @@
-package grpc_service_test
+package feedback_grpc_test
 
 import (
 	"context"
+	"net"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
+	"github.com/ozoncp/ocp-feedback-api/internal/server/feedback_grpc"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 )
 
 func TestClientCreateFeedback(t *testing.T) {
@@ -21,7 +25,7 @@ func TestClientCreateFeedback(t *testing.T) {
 	defer db.Close()
 
 	serverAddress := startTestGrpcServer(t,
-		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
 
 	// valid request
@@ -62,7 +66,7 @@ func TestClientCreateMultiFeedback(t *testing.T) {
 	defer db.Close()
 
 	serverAddress := startTestGrpcServer(t,
-		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
 
 	// valid request
@@ -139,7 +143,7 @@ func TestClientRemoveFeedback(t *testing.T) {
 	defer db.Close()
 
 	serverAddress := startTestGrpcServer(t,
-		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
 
 	nf1 := fb.Feedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
@@ -193,9 +197,8 @@ func TestClientDescribeFeedback(t *testing.T) {
 		t.Fatal("sqlmock init failed", err)
 	}
 	defer db.Close()
-
 	serverAddress := startTestGrpcServer(t,
-		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
 
 	nf := fb.Feedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
@@ -260,7 +263,7 @@ func TestClientListFeedbacks(t *testing.T) {
 	defer db.Close()
 
 	serverAddress := startTestGrpcServer(t,
-		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 1)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), 1)
 	client := newTestGrpcClient(t, serverAddress)
 
 	nf1 := fb.Feedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
@@ -351,7 +354,7 @@ func TestClientUpdateFeedback(t *testing.T) {
 	defer db.Close()
 
 	serverAddress := startTestGrpcServer(t,
-		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), nil, 2)
+		repo.NewFeedbackRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
 
 	nf1 := fb.Feedback{UserId: 42, ClassroomId: 24, Comment: "hello1"}
@@ -389,4 +392,28 @@ func TestClientUpdateFeedback(t *testing.T) {
 	respUpdate, err = client.UpdateFeedbackV1(context.Background(), reqUpdate)
 	require.Error(t, err)
 	require.Nil(t, respUpdate)
+}
+
+func startTestGrpcServer(t *testing.T,
+	feedbackRepo repo.Repo,
+	chunks int,
+) string {
+	zerolog.SetGlobalLevel(zerolog.Disabled)
+
+	service := feedback_grpc.New(feedbackRepo, chunks)
+	grpcServer := grpc.NewServer()
+	fb.RegisterOcpFeedbackApiServer(grpcServer, service)
+	listener, err := net.Listen("tcp", ":0") // random available port
+	require.NoError(t, err)
+	go func() {
+		err := grpcServer.Serve(listener)
+		require.NoError(t, err)
+	}()
+	return listener.Addr().String()
+}
+
+func newTestGrpcClient(t *testing.T, serverAddress string) fb.OcpFeedbackApiClient {
+	conn, err := grpc.Dial(serverAddress, grpc.WithInsecure())
+	require.NoError(t, err)
+	return fb.NewOcpFeedbackApiClient(conn)
 }

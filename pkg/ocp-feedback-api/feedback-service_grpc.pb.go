@@ -24,12 +24,6 @@ type OcpFeedbackApiClient interface {
 	DescribeFeedbackV1(ctx context.Context, in *DescribeFeedbackV1Request, opts ...grpc.CallOption) (*DescribeFeedbackV1Response, error)
 	UpdateFeedbackV1(ctx context.Context, in *UpdateFeedbackV1Request, opts ...grpc.CallOption) (*UpdateFeedbackV1Response, error)
 	ListFeedbacksV1(ctx context.Context, in *ListFeedbacksV1Request, opts ...grpc.CallOption) (*ListFeedbacksV1Response, error)
-	CreateProposalV1(ctx context.Context, in *CreateProposalV1Request, opts ...grpc.CallOption) (*CreateProposalV1Response, error)
-	CreateMultiProposalV1(ctx context.Context, in *CreateMultiProposalV1Request, opts ...grpc.CallOption) (*CreateMultiProposalV1Response, error)
-	RemoveProposalV1(ctx context.Context, in *RemoveProposalV1Request, opts ...grpc.CallOption) (*RemoveProposalV1Response, error)
-	DescribeProposalV1(ctx context.Context, in *DescribeProposalV1Request, opts ...grpc.CallOption) (*DescribeProposalV1Response, error)
-	UpdateProposalV1(ctx context.Context, in *UpdateProposalV1Request, opts ...grpc.CallOption) (*UpdateProposalV1Response, error)
-	ListProposalsV1(ctx context.Context, in *ListProposalsV1Request, opts ...grpc.CallOption) (*ListProposalsV1Response, error)
 }
 
 type ocpFeedbackApiClient struct {
@@ -94,60 +88,6 @@ func (c *ocpFeedbackApiClient) ListFeedbacksV1(ctx context.Context, in *ListFeed
 	return out, nil
 }
 
-func (c *ocpFeedbackApiClient) CreateProposalV1(ctx context.Context, in *CreateProposalV1Request, opts ...grpc.CallOption) (*CreateProposalV1Response, error) {
-	out := new(CreateProposalV1Response)
-	err := c.cc.Invoke(ctx, "/ocp.feedback.api.OcpFeedbackApi/CreateProposalV1", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *ocpFeedbackApiClient) CreateMultiProposalV1(ctx context.Context, in *CreateMultiProposalV1Request, opts ...grpc.CallOption) (*CreateMultiProposalV1Response, error) {
-	out := new(CreateMultiProposalV1Response)
-	err := c.cc.Invoke(ctx, "/ocp.feedback.api.OcpFeedbackApi/CreateMultiProposalV1", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *ocpFeedbackApiClient) RemoveProposalV1(ctx context.Context, in *RemoveProposalV1Request, opts ...grpc.CallOption) (*RemoveProposalV1Response, error) {
-	out := new(RemoveProposalV1Response)
-	err := c.cc.Invoke(ctx, "/ocp.feedback.api.OcpFeedbackApi/RemoveProposalV1", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *ocpFeedbackApiClient) DescribeProposalV1(ctx context.Context, in *DescribeProposalV1Request, opts ...grpc.CallOption) (*DescribeProposalV1Response, error) {
-	out := new(DescribeProposalV1Response)
-	err := c.cc.Invoke(ctx, "/ocp.feedback.api.OcpFeedbackApi/DescribeProposalV1", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *ocpFeedbackApiClient) UpdateProposalV1(ctx context.Context, in *UpdateProposalV1Request, opts ...grpc.CallOption) (*UpdateProposalV1Response, error) {
-	out := new(UpdateProposalV1Response)
-	err := c.cc.Invoke(ctx, "/ocp.feedback.api.OcpFeedbackApi/UpdateProposalV1", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *ocpFeedbackApiClient) ListProposalsV1(ctx context.Context, in *ListProposalsV1Request, opts ...grpc.CallOption) (*ListProposalsV1Response, error) {
-	out := new(ListProposalsV1Response)
-	err := c.cc.Invoke(ctx, "/ocp.feedback.api.OcpFeedbackApi/ListProposalsV1", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // OcpFeedbackApiServer is the server API for OcpFeedbackApi service.
 // All implementations must embed UnimplementedOcpFeedbackApiServer
 // for forward compatibility
@@ -158,12 +98,6 @@ type OcpFeedbackApiServer interface {
 	DescribeFeedbackV1(context.Context, *DescribeFeedbackV1Request) (*DescribeFeedbackV1Response, error)
 	UpdateFeedbackV1(context.Context, *UpdateFeedbackV1Request) (*UpdateFeedbackV1Response, error)
 	ListFeedbacksV1(context.Context, *ListFeedbacksV1Request) (*ListFeedbacksV1Response, error)
-	CreateProposalV1(context.Context, *CreateProposalV1Request) (*CreateProposalV1Response, error)
-	CreateMultiProposalV1(context.Context, *CreateMultiProposalV1Request) (*CreateMultiProposalV1Response, error)
-	RemoveProposalV1(context.Context, *RemoveProposalV1Request) (*RemoveProposalV1Response, error)
-	DescribeProposalV1(context.Context, *DescribeProposalV1Request) (*DescribeProposalV1Response, error)
-	UpdateProposalV1(context.Context, *UpdateProposalV1Request) (*UpdateProposalV1Response, error)
-	ListProposalsV1(context.Context, *ListProposalsV1Request) (*ListProposalsV1Response, error)
 	mustEmbedUnimplementedOcpFeedbackApiServer()
 }
 
@@ -188,24 +122,6 @@ func (UnimplementedOcpFeedbackApiServer) UpdateFeedbackV1(context.Context, *Upda
 }
 func (UnimplementedOcpFeedbackApiServer) ListFeedbacksV1(context.Context, *ListFeedbacksV1Request) (*ListFeedbacksV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFeedbacksV1 not implemented")
-}
-func (UnimplementedOcpFeedbackApiServer) CreateProposalV1(context.Context, *CreateProposalV1Request) (*CreateProposalV1Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateProposalV1 not implemented")
-}
-func (UnimplementedOcpFeedbackApiServer) CreateMultiProposalV1(context.Context, *CreateMultiProposalV1Request) (*CreateMultiProposalV1Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateMultiProposalV1 not implemented")
-}
-func (UnimplementedOcpFeedbackApiServer) RemoveProposalV1(context.Context, *RemoveProposalV1Request) (*RemoveProposalV1Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveProposalV1 not implemented")
-}
-func (UnimplementedOcpFeedbackApiServer) DescribeProposalV1(context.Context, *DescribeProposalV1Request) (*DescribeProposalV1Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DescribeProposalV1 not implemented")
-}
-func (UnimplementedOcpFeedbackApiServer) UpdateProposalV1(context.Context, *UpdateProposalV1Request) (*UpdateProposalV1Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateProposalV1 not implemented")
-}
-func (UnimplementedOcpFeedbackApiServer) ListProposalsV1(context.Context, *ListProposalsV1Request) (*ListProposalsV1Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListProposalsV1 not implemented")
 }
 func (UnimplementedOcpFeedbackApiServer) mustEmbedUnimplementedOcpFeedbackApiServer() {}
 
@@ -328,114 +244,6 @@ func _OcpFeedbackApi_ListFeedbacksV1_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OcpFeedbackApi_CreateProposalV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateProposalV1Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OcpFeedbackApiServer).CreateProposalV1(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ocp.feedback.api.OcpFeedbackApi/CreateProposalV1",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OcpFeedbackApiServer).CreateProposalV1(ctx, req.(*CreateProposalV1Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OcpFeedbackApi_CreateMultiProposalV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMultiProposalV1Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OcpFeedbackApiServer).CreateMultiProposalV1(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ocp.feedback.api.OcpFeedbackApi/CreateMultiProposalV1",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OcpFeedbackApiServer).CreateMultiProposalV1(ctx, req.(*CreateMultiProposalV1Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OcpFeedbackApi_RemoveProposalV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveProposalV1Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OcpFeedbackApiServer).RemoveProposalV1(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ocp.feedback.api.OcpFeedbackApi/RemoveProposalV1",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OcpFeedbackApiServer).RemoveProposalV1(ctx, req.(*RemoveProposalV1Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OcpFeedbackApi_DescribeProposalV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DescribeProposalV1Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OcpFeedbackApiServer).DescribeProposalV1(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ocp.feedback.api.OcpFeedbackApi/DescribeProposalV1",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OcpFeedbackApiServer).DescribeProposalV1(ctx, req.(*DescribeProposalV1Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OcpFeedbackApi_UpdateProposalV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateProposalV1Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OcpFeedbackApiServer).UpdateProposalV1(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ocp.feedback.api.OcpFeedbackApi/UpdateProposalV1",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OcpFeedbackApiServer).UpdateProposalV1(ctx, req.(*UpdateProposalV1Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OcpFeedbackApi_ListProposalsV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListProposalsV1Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OcpFeedbackApiServer).ListProposalsV1(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ocp.feedback.api.OcpFeedbackApi/ListProposalsV1",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OcpFeedbackApiServer).ListProposalsV1(ctx, req.(*ListProposalsV1Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // OcpFeedbackApi_ServiceDesc is the grpc.ServiceDesc for OcpFeedbackApi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -466,30 +274,6 @@ var OcpFeedbackApi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFeedbacksV1",
 			Handler:    _OcpFeedbackApi_ListFeedbacksV1_Handler,
-		},
-		{
-			MethodName: "CreateProposalV1",
-			Handler:    _OcpFeedbackApi_CreateProposalV1_Handler,
-		},
-		{
-			MethodName: "CreateMultiProposalV1",
-			Handler:    _OcpFeedbackApi_CreateMultiProposalV1_Handler,
-		},
-		{
-			MethodName: "RemoveProposalV1",
-			Handler:    _OcpFeedbackApi_RemoveProposalV1_Handler,
-		},
-		{
-			MethodName: "DescribeProposalV1",
-			Handler:    _OcpFeedbackApi_DescribeProposalV1_Handler,
-		},
-		{
-			MethodName: "UpdateProposalV1",
-			Handler:    _OcpFeedbackApi_UpdateProposalV1_Handler,
-		},
-		{
-			MethodName: "ListProposalsV1",
-			Handler:    _OcpFeedbackApi_ListProposalsV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

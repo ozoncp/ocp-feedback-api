@@ -1,21 +1,33 @@
-package grpc_service
+package proposal_grpc
 
 import (
 	"context"
 
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
+	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	"github.com/ozoncp/ocp-feedback-api/internal/utils"
-	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
+	pr "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+type ProposalService struct {
+	pr.UnimplementedOcpProposalApiServer
+	proposalRepo repo.Repo
+	chunks       int
+}
+
+// New returns a new Feedback GRPC server
+func New(pRepo repo.Repo, chunks int) *ProposalService {
+	return &ProposalService{proposalRepo: pRepo, chunks: chunks}
+}
+
 // CreateProposalV1 saves a new proposal
-func (s *GrpcService) CreateProposalV1(
+func (s *ProposalService) CreateProposalV1(
 	ctx context.Context,
-	req *fb.CreateProposalV1Request,
-) (*fb.CreateProposalV1Response, error) {
+	req *pr.CreateProposalV1Request,
+) (*pr.CreateProposalV1Response, error) {
 
 	log.Info().Msgf("Handle request for CreateProposalV1Request: %v", req)
 	if err := req.Validate(); err != nil {
@@ -34,14 +46,14 @@ func (s *GrpcService) CreateProposalV1(
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
-	return &fb.CreateProposalV1Response{Proposal: ids[0]}, nil
+	return &pr.CreateProposalV1Response{Proposal: ids[0]}, nil
 }
 
 // CreateMultiProposalV1 creates multiple proposals
-func (s *GrpcService) CreateMultiProposalV1(
+func (s *ProposalService) CreateMultiProposalV1(
 	ctx context.Context,
-	req *fb.CreateMultiProposalV1Request,
-) (*fb.CreateMultiProposalV1Response, error) {
+	req *pr.CreateMultiProposalV1Request,
+) (*pr.CreateMultiProposalV1Response, error) {
 
 	log.Info().Msgf("Handle request for CreateMultiProposalV1: %v", req)
 
@@ -66,7 +78,7 @@ func (s *GrpcService) CreateMultiProposalV1(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	res := &fb.CreateMultiProposalV1Response{}
+	res := &pr.CreateMultiProposalV1Response{}
 
 	// try to insert into database one chunk per transaction
 	// if transaction fails, only those IDs which have been already added successfully
@@ -83,10 +95,10 @@ func (s *GrpcService) CreateMultiProposalV1(
 }
 
 // RemoveProposalV1 removes a proposal
-func (s *GrpcService) RemoveProposalV1(
+func (s *ProposalService) RemoveProposalV1(
 	ctx context.Context,
-	req *fb.RemoveProposalV1Request,
-) (*fb.RemoveProposalV1Response, error) {
+	req *pr.RemoveProposalV1Request,
+) (*pr.RemoveProposalV1Response, error) {
 
 	log.Info().Msgf("Handle request for RemoveProposalV1 %v", req)
 
@@ -96,14 +108,14 @@ func (s *GrpcService) RemoveProposalV1(
 	if err := s.proposalRepo.RemoveEntity(ctx, req.Proposal); err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to delete a proposal: %v", err)
 	}
-	return &fb.RemoveProposalV1Response{}, nil
+	return &pr.RemoveProposalV1Response{}, nil
 }
 
 // DescribeProposalV1 returns a proposal
-func (s *GrpcService) DescribeProposalV1(
+func (s *ProposalService) DescribeProposalV1(
 	ctx context.Context,
-	req *fb.DescribeProposalV1Request,
-) (*fb.DescribeProposalV1Response, error) {
+	req *pr.DescribeProposalV1Request,
+) (*pr.DescribeProposalV1Response, error) {
 
 	log.Info().Msgf("Handle request for DescribeProposalV1: %v", req)
 
@@ -115,20 +127,20 @@ func (s *GrpcService) DescribeProposalV1(
 		return nil, status.Errorf(codes.NotFound, "unable to describe a proposal: %v", err)
 	}
 	p := entity.(*models.Proposal)
-	respProposal := fb.Proposal{
+	respProposal := pr.Proposal{
 		Id:         p.Id,
 		UserId:     p.UserId,
 		LessonId:   p.LessonId,
 		DocumentId: p.DocumentId,
 	}
-	return &fb.DescribeProposalV1Response{Proposal: &respProposal}, nil
+	return &pr.DescribeProposalV1Response{Proposal: &respProposal}, nil
 }
 
 // ListProposalsV1 returns a list of at most 'limit' proposals starting from 'offset'
-func (s *GrpcService) ListProposalsV1(
+func (s *ProposalService) ListProposalsV1(
 	ctx context.Context,
-	req *fb.ListProposalsV1Request,
-) (*fb.ListProposalsV1Response, error) {
+	req *pr.ListProposalsV1Request,
+) (*pr.ListProposalsV1Response, error) {
 
 	log.Info().Msgf("Handle request for ListProposalsV1: %v", req)
 
@@ -140,25 +152,25 @@ func (s *GrpcService) ListProposalsV1(
 	if err != nil {
 		return nil, status.Errorf(codes.OutOfRange, "unable to list proposals: %v", err)
 	}
-	var proposals []*fb.Proposal
+	var proposals []*pr.Proposal
 
 	for i := 0; i < len(entities); i++ {
 		p := entities[i].(*models.Proposal)
-		proposals = append(proposals, &fb.Proposal{
+		proposals = append(proposals, &pr.Proposal{
 			Id:         p.Id,
 			UserId:     p.UserId,
 			LessonId:   p.LessonId,
 			DocumentId: p.DocumentId,
 		})
 	}
-	return &fb.ListProposalsV1Response{Proposals: proposals}, nil
+	return &pr.ListProposalsV1Response{Proposals: proposals}, nil
 }
 
 // UpdatePropsalV1 updates a proposal
-func (s *GrpcService) UpdateProposalV1(
+func (s *ProposalService) UpdateProposalV1(
 	ctx context.Context,
-	req *fb.UpdateProposalV1Request,
-) (*fb.UpdateProposalV1Response, error) {
+	req *pr.UpdateProposalV1Request,
+) (*pr.UpdateProposalV1Response, error) {
 	log.Info().Msgf("Handle request for UpdateProposalV1: %v", req)
 
 	if err := req.Validate(); err != nil {
@@ -175,5 +187,5 @@ func (s *GrpcService) UpdateProposalV1(
 	if err := s.proposalRepo.UpdateEntity(ctx, p); err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to update a proposal: %v", err)
 	}
-	return &fb.UpdateProposalV1Response{}, nil
+	return &pr.UpdateProposalV1Response{}, nil
 }

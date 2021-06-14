@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+import "proposal-messages.proto";
+
+package ocp.proposal.api;
+
+option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api;ocp_proposal_api";
+
+service OcpProposalApi {
+
+        rpc CreateProposalV1(CreateProposalV1Request) returns (CreateProposalV1Response) {
+        option (google.api.http) = {
+            post: "/v1/proposals"
+            body: "proposal"
+        };
+    }
+
+    rpc CreateMultiProposalV1(CreateMultiProposalV1Request) returns (CreateMultiProposalV1Response) {
+        option (google.api.http) = {
+            post: "/v1/proposals"
+            body: "*"
+        };
+    }
+
+    rpc RemoveProposalV1(RemoveProposalV1Request) returns (RemoveProposalV1Response) {
+        option (google.api.http) = {
+            delete: "/v1/proposals/{proposal}"
+        };
+    }
+
+    rpc DescribeProposalV1(DescribeProposalV1Request) returns (DescribeProposalV1Response) {
+        option (google.api.http) = {
+            get: "/v1/proposals/{proposal}"
+        };
+    }
+
+    rpc UpdateProposalV1(UpdateProposalV1Request) returns (UpdateProposalV1Response) {
+        option (google.api.http) = {
+            patch: "/v1/proposals"
+            body: "proposal"
+        };
+    }
+
+    rpc ListProposalsV1(ListProposalsV1Request) returns (ListProposalsV1Response) {
+        option (google.api.http) = {
+            get: "/v1/proposals/{offset}/{limit}"
+        };
+    }
+}
+

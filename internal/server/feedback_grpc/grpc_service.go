@@ -1,9 +1,10 @@
-package grpc_service
+package feedback_grpc
 
 import (
 	"context"
 
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
+	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	"github.com/ozoncp/ocp-feedback-api/internal/utils"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
 	"github.com/rs/zerolog/log"
@@ -11,8 +12,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type FeedbackService struct {
+	fb.UnimplementedOcpFeedbackApiServer
+	feedbackRepo repo.Repo
+	chunks       int
+}
+
+// New returns a new Feedback GRPC service
+func New(fRepo repo.Repo, chunks int) *FeedbackService {
+	return &FeedbackService{feedbackRepo: fRepo, chunks: chunks}
+}
+
 // CreateFeedbackV1 saves a new feedback
-func (s *GrpcService) CreateFeedbackV1(
+func (s *FeedbackService) CreateFeedbackV1(
 	ctx context.Context,
 	req *fb.CreateFeedbackV1Request,
 ) (*fb.CreateFeedbackV1Response, error) {
@@ -37,7 +49,7 @@ func (s *GrpcService) CreateFeedbackV1(
 }
 
 // CreateMultiFeedbackV1 creates multiple feedbacks
-func (s *GrpcService) CreateMultiFeedbackV1(
+func (s *FeedbackService) CreateMultiFeedbackV1(
 	ctx context.Context,
 	req *fb.CreateMultiFeedbackV1Request,
 ) (*fb.CreateMultiFeedbackV1Response, error) {
@@ -82,7 +94,7 @@ func (s *GrpcService) CreateMultiFeedbackV1(
 }
 
 // RemoveFeedbackV1 removes a feedback
-func (s *GrpcService) RemoveFeedbackV1(
+func (s *FeedbackService) RemoveFeedbackV1(
 	ctx context.Context,
 	req *fb.RemoveFeedbackV1Request,
 ) (*fb.RemoveFeedbackV1Response, error) {
@@ -99,7 +111,7 @@ func (s *GrpcService) RemoveFeedbackV1(
 }
 
 // DescribeFeedbackV1 returns a feedback
-func (s *GrpcService) DescribeFeedbackV1(
+func (s *FeedbackService) DescribeFeedbackV1(
 	ctx context.Context,
 	req *fb.DescribeFeedbackV1Request,
 ) (*fb.DescribeFeedbackV1Response, error) {
@@ -124,7 +136,7 @@ func (s *GrpcService) DescribeFeedbackV1(
 }
 
 // ListFeedbacksV1 returns a list of at most 'limit' feedbacks starting from 'offset'
-func (s *GrpcService) ListFeedbacksV1(
+func (s *FeedbackService) ListFeedbacksV1(
 	ctx context.Context,
 	req *fb.ListFeedbacksV1Request,
 ) (*fb.ListFeedbacksV1Response, error) {
@@ -154,7 +166,7 @@ func (s *GrpcService) ListFeedbacksV1(
 }
 
 // UpdateFeedbackV1 updates a feedback
-func (s *GrpcService) UpdateFeedbackV1(
+func (s *FeedbackService) UpdateFeedbackV1(
 	ctx context.Context,
 	req *fb.UpdateFeedbackV1Request,
 ) (*fb.UpdateFeedbackV1Response, error) {

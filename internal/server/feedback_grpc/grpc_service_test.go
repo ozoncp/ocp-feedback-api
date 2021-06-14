@@ -161,10 +161,8 @@ func TestClientRemoveFeedback(t *testing.T) {
 	require.NotNil(t, respCreate)
 	require.Equal(t, uint64(1), respCreate.FeedbackId)
 
-	mock.ExpectQuery("SELECT 1 FROM reaction.feedback").
+	mock.ExpectQuery("DELETE FROM reaction.feedback").
 		WithArgs(respCreate.FeedbackId).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
-	mock.ExpectExec("DELETE FROM reaction.feedback").
-		WithArgs(respCreate.FeedbackId).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	reqRemove := &fb.RemoveFeedbackV1Request{FeedbackId: respCreate.FeedbackId}
 	respRemove, err := client.RemoveFeedbackV1(context.Background(), reqRemove)
@@ -372,11 +370,11 @@ func TestClientUpdateFeedback(t *testing.T) {
 	require.NotNil(t, respCreate)
 	require.Equal(t, uint64(1), respCreate.FeedbackId)
 
-	mock.ExpectQuery("SELECT 1 FROM reaction.feedback").
-		WithArgs(respCreate.FeedbackId).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	nf2 := fb.Feedback{FeedbackId: 1, UserId: 10, ClassroomId: 20, Comment: "hi"}
-	mock.ExpectExec("UPDATE reaction.feedback").
-		WithArgs(nf2.UserId, nf2.ClassroomId, nf2.Comment, nf2.FeedbackId).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectQuery("UPDATE reaction.feedback").
+		WithArgs(nf2.UserId, nf2.ClassroomId, nf2.Comment, nf2.FeedbackId).WillReturnRows(
+		sqlmock.NewRows([]string{"id"}).AddRow(1),
+	)
 
 	reqUpdate := &fb.UpdateFeedbackV1Request{Feedback: &nf2}
 	respUpdate, err := client.UpdateFeedbackV1(context.Background(), reqUpdate)

@@ -105,8 +105,11 @@ func (s *ProposalService) RemoveProposalV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := s.proposalRepo.RemoveEntity(ctx, req.ProposalId); err != nil {
-		return nil, status.Errorf(codes.NotFound, "unable to delete a proposal: %v", err)
+	err := s.proposalRepo.RemoveEntity(ctx, req.ProposalId)
+	if err == repo.ErrNotFound {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &pr.RemoveProposalV1Response{}, nil
 }
@@ -123,8 +126,10 @@ func (s *ProposalService) DescribeProposalV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	entity, err := s.proposalRepo.DescribeEntity(ctx, req.ProposalId)
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "unable to describe a proposal: %v", err)
+	if err == repo.ErrNotFound {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	p := entity.(*models.Proposal)
 	respProposal := pr.Proposal{
@@ -184,8 +189,11 @@ func (s *ProposalService) UpdateProposalV1(
 		DocumentId: req.Proposal.DocumentId,
 	}
 
-	if err := s.proposalRepo.UpdateEntity(ctx, p); err != nil {
-		return nil, status.Errorf(codes.NotFound, "unable to update a proposal: %v", err)
+	err := s.proposalRepo.UpdateEntity(ctx, p)
+	if err == repo.ErrNotFound {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &pr.UpdateProposalV1Response{}, nil
 }

@@ -71,24 +71,14 @@ func (r *proposalRepo) AddEntities(ctx context.Context, entities ...models.Entit
 // RemoveEntity removes a proposal from the database
 func (r *proposalRepo) RemoveEntity(ctx context.Context, entityId uint64) error {
 
-	// check if record exists
-	var dummy uint64
+	var id uint64
 	err := r.db.QueryRowContext(ctx,
-		"SELECT 1 FROM reaction.proposal WHERE id=$1;",
+		"DELETE FROM reaction.proposal WHERE id=$1 RETURNING id;",
 		entityId,
-	).Scan(&dummy)
-
+	).Scan(&id)
 	if err == sql.ErrNoRows {
-		return errors.New("no such proposal")
+		return ErrNotFound
 	} else if err != nil {
-		return fmt.Errorf("unable to remove proposal: %v", err)
-	}
-
-	_, err = r.db.ExecContext(ctx,
-		"DELETE FROM reaction.proposal WHERE id=$1;",
-		entityId,
-	)
-	if err != nil {
 		return fmt.Errorf("unable to remove proposal: %v", err)
 	}
 	return nil
@@ -104,7 +94,7 @@ func (r *proposalRepo) DescribeEntity(ctx context.Context, entityId uint64) (mod
 	).Scan(&pr.Id, &pr.UserId, &pr.LessonId, &pr.DocumentId)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.New("no such proposal")
+		return nil, ErrNotFound
 	} else if err != nil {
 		return nil, fmt.Errorf("unable to get proposal: %v", err)
 	}
@@ -144,27 +134,14 @@ func (r *proposalRepo) UpdateEntity(ctx context.Context, entity models.Entity) e
 	if !ok {
 		return errors.New("underlying type must be *models.Proposal")
 	}
-
-	// check if record exists
-	var dummy uint64
+	var id uint64
 	err := r.db.QueryRowContext(ctx,
-		"SELECT 1 FROM reaction.proposal WHERE id=$1;",
-		p.Id,
-	).Scan(&dummy)
-
-	if err == sql.ErrNoRows {
-		return errors.New("no such proposal")
-	} else if err != nil {
-		return fmt.Errorf("unable to update feedback: %v", err)
-	}
-
-	_, err = r.db.ExecContext(ctx,
-		"UPDATE reaction.proposal SET user_id=$1, lesson_id=$2, document_id=$3 WHERE id=$4;",
+		"UPDATE reaction.proposal SET user_id=$1, lesson_id=$2, document_id=$3 WHERE id=$4 RETURNING id;",
 		p.UserId, p.LessonId, p.DocumentId, p.Id,
-	)
+	).Scan(&id)
 
 	if err == sql.ErrNoRows {
-		return errors.New("no such proposal")
+		return ErrNotFound
 	} else if err != nil {
 		return fmt.Errorf("unable to update proposal: %v", err)
 	}

@@ -7,8 +7,8 @@ import (
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 )
 
-// ErrNotFound is returned when no entity with a such id exists in the repo
-var ErrNotFound = errors.New("entity already exists")
+// ErrNotFound is returned when no record with a such id exists in the repo
+var ErrNotFound = errors.New("record not found")
 
 // flusher and saver don't need the whole Repo interface
 type BatchAdder interface {

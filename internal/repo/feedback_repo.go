@@ -72,24 +72,14 @@ func (r *feedbackRepo) AddEntities(ctx context.Context, entities ...models.Entit
 // RemoveEntity removes a feedback from the database
 func (r *feedbackRepo) RemoveEntity(ctx context.Context, entityId uint64) error {
 
-	// check if record exists
-	var dummy uint64
+	var id uint64
 	err := r.db.QueryRowContext(ctx,
-		"SELECT 1 FROM reaction.feedback WHERE id=$1;",
+		"DELETE FROM reaction.feedback WHERE id=$1 RETURNING id;",
 		entityId,
-	).Scan(&dummy)
-
+	).Scan(&id)
 	if err == sql.ErrNoRows {
-		return errors.New("no such feedback")
+		return ErrNotFound
 	} else if err != nil {
-		return fmt.Errorf("unable to remove feedback: %v", err)
-	}
-
-	_, err = r.db.ExecContext(ctx,
-		"DELETE FROM reaction.feedback WHERE id=$1;",
-		entityId,
-	)
-	if err != nil {
 		return fmt.Errorf("unable to remove feedback: %v", err)
 	}
 	return nil
@@ -105,7 +95,7 @@ func (r *feedbackRepo) DescribeEntity(ctx context.Context, entityId uint64) (mod
 	).Scan(&fb.Id, &fb.UserId, &fb.ClassroomId, &fb.Comment)
 
 	if err == sql.ErrNoRows {
-		return nil, errors.New("no such feedback")
+		return nil, ErrNotFound
 	} else if err != nil {
 		return nil, fmt.Errorf("unable to get feedback: %v", err)
 	}
@@ -147,26 +137,14 @@ func (r *feedbackRepo) UpdateEntity(ctx context.Context, entity models.Entity) e
 		return errors.New("underlying type must be *models.Feedback")
 	}
 
-	// check if record exists
-	var dummy uint64
+	var id uint64
 	err := r.db.QueryRowContext(ctx,
-		"SELECT 1 FROM reaction.feedback WHERE id=$1;",
-		f.Id,
-	).Scan(&dummy)
-
-	if err == sql.ErrNoRows {
-		return errors.New("no such feedback")
-	} else if err != nil {
-		return fmt.Errorf("unable to update feedback: %v", err)
-	}
-
-	_, err = r.db.ExecContext(ctx,
-		"UPDATE reaction.feedback SET user_id=$1, classroom_id=$2, comment=$3 WHERE id=$4;",
+		"UPDATE reaction.feedback SET user_id=$1, classroom_id=$2, comment=$3 WHERE id=$4 RETURNING id;",
 		f.UserId, f.ClassroomId, f.Comment, f.Id,
-	)
+	).Scan(&id)
 
 	if err == sql.ErrNoRows {
-		return errors.New("no such feedback")
+		return ErrNotFound
 	} else if err != nil {
 		return fmt.Errorf("unable to update feedback: %v", err)
 	}

@@ -104,8 +104,11 @@ func (s *FeedbackService) RemoveFeedbackV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := s.feedbackRepo.RemoveEntity(ctx, req.FeedbackId); err != nil {
-		return nil, status.Errorf(codes.NotFound, "unable to delete a feedback: %v", err)
+	err := s.feedbackRepo.RemoveEntity(ctx, req.FeedbackId)
+	if err == repo.ErrNotFound {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &fb.RemoveFeedbackV1Response{}, nil
 }
@@ -122,8 +125,10 @@ func (s *FeedbackService) DescribeFeedbackV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.FeedbackId)
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "unable to describe a feedback: %v", err)
+	if err == repo.ErrNotFound {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	f := entity.(*models.Feedback)
 	respFeedback := fb.Feedback{
@@ -183,8 +188,11 @@ func (s *FeedbackService) UpdateFeedbackV1(
 		Comment:     req.Feedback.Comment,
 	}
 
-	if err := s.feedbackRepo.UpdateEntity(ctx, f); err != nil {
-		return nil, status.Errorf(codes.NotFound, "unable to update a feedback: %v", err)
+	err := s.feedbackRepo.UpdateEntity(ctx, f)
+	if err == repo.ErrNotFound {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &fb.UpdateFeedbackV1Response{}, nil
 }

@@ -112,15 +112,15 @@ func request_OcpProposalApi_RemoveProposalV1_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["proposal"]
+	val, ok = pathParams["proposal_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
 
-	protoReq.Proposal, err = runtime.Uint64(val)
+	protoReq.ProposalId, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := client.RemoveProposalV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -139,15 +139,15 @@ func local_request_OcpProposalApi_RemoveProposalV1_0(ctx context.Context, marsha
 		_   = err
 	)
 
-	val, ok = pathParams["proposal"]
+	val, ok = pathParams["proposal_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
 
-	protoReq.Proposal, err = runtime.Uint64(val)
+	protoReq.ProposalId, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := server.RemoveProposalV1(ctx, &protoReq)
@@ -166,15 +166,15 @@ func request_OcpProposalApi_DescribeProposalV1_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["proposal"]
+	val, ok = pathParams["proposal_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
 
-	protoReq.Proposal, err = runtime.Uint64(val)
+	protoReq.ProposalId, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := client.DescribeProposalV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -193,15 +193,15 @@ func local_request_OcpProposalApi_DescribeProposalV1_0(ctx context.Context, mars
 		_   = err
 	)
 
-	val, ok = pathParams["proposal"]
+	val, ok = pathParams["proposal_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "proposal_id")
 	}
 
-	protoReq.Proposal, err = runtime.Uint64(val)
+	protoReq.ProposalId, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "proposal_id", err)
 	}
 
 	msg, err := server.DescribeProposalV1(ctx, &protoReq)
@@ -243,37 +243,19 @@ func local_request_OcpProposalApi_UpdateProposalV1_0(ctx context.Context, marsha
 
 }
 
+var (
+	filter_OcpProposalApi_ListProposalsV1_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_OcpProposalApi_ListProposalsV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpProposalApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListProposalsV1Request
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["offset"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "offset")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Offset, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "offset", err)
-	}
-
-	val, ok = pathParams["limit"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "limit")
-	}
-
-	protoReq.Limit, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "limit", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpProposalApi_ListProposalsV1_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ListProposalsV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -285,33 +267,11 @@ func local_request_OcpProposalApi_ListProposalsV1_0(ctx context.Context, marshal
 	var protoReq ListProposalsV1Request
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["offset"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "offset")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Offset, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "offset", err)
-	}
-
-	val, ok = pathParams["limit"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "limit")
-	}
-
-	protoReq.Limit, err = runtime.Uint64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "limit", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_OcpProposalApi_ListProposalsV1_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ListProposalsV1(ctx, &protoReq)
@@ -417,7 +377,7 @@ func RegisterOcpProposalApiHandlerServer(ctx context.Context, mux *runtime.Serve
 
 	})
 
-	mux.Handle("PATCH", pattern_OcpProposalApi_UpdateProposalV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_OcpProposalApi_UpdateProposalV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -584,7 +544,7 @@ func RegisterOcpProposalApiHandlerClient(ctx context.Context, mux *runtime.Serve
 
 	})
 
-	mux.Handle("PATCH", pattern_OcpProposalApi_UpdateProposalV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_OcpProposalApi_UpdateProposalV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -630,15 +590,15 @@ func RegisterOcpProposalApiHandlerClient(ctx context.Context, mux *runtime.Serve
 var (
 	pattern_OcpProposalApi_CreateProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpProposalApi_CreateMultiProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpProposalApi_CreateMultiProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"batch", "v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpProposalApi_RemoveProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpProposalApi_RemoveProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpProposalApi_DescribeProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpProposalApi_DescribeProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "proposals", "proposal_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpProposalApi_UpdateProposalV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpProposalApi_ListProposalsV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "proposals", "offset", "limit"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpProposalApi_ListProposalsV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

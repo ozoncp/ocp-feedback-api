@@ -40,7 +40,7 @@ func (m *Feedback) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Id
+	// no validation rules for FeedbackId
 
 	if m.GetUserId() <= 0 {
 		return FeedbackValidationError{
@@ -212,9 +212,9 @@ func (m *CreateFeedbackV1Response) Validate() error {
 		return nil
 	}
 
-	if m.GetFeedback() <= 0 {
+	if m.GetFeedbackId() <= 0 {
 		return CreateFeedbackV1ResponseValidationError{
-			field:  "Feedback",
+			field:  "FeedbackId",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -376,9 +376,9 @@ func (m *CreateMultiFeedbackV1Response) Validate() error {
 		return nil
 	}
 
-	if len(m.GetFeedbacks()) < 1 {
+	if len(m.GetFeedbackId()) < 1 {
 		return CreateMultiFeedbackV1ResponseValidationError{
-			field:  "Feedbacks",
+			field:  "FeedbackId",
 			reason: "value must contain at least 1 item(s)",
 		}
 	}
@@ -451,9 +451,9 @@ func (m *RemoveFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetFeedback() <= 0 {
+	if m.GetFeedbackId() <= 0 {
 		return RemoveFeedbackV1RequestValidationError{
-			field:  "Feedback",
+			field:  "FeedbackId",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -592,9 +592,9 @@ func (m *DescribeFeedbackV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetFeedback() <= 0 {
+	if m.GetFeedbackId() <= 0 {
 		return DescribeFeedbackV1RequestValidationError{
-			field:  "Feedback",
+			field:  "FeedbackId",
 			reason: "value must be greater than 0",
 		}
 	}

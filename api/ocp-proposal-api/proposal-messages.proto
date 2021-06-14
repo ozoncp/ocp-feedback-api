@@ -8,7 +8,7 @@ package ocp.proposal.api;
 option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api;ocp_proposal_api";
 
 message Proposal {
-    uint64 id = 1; 
+    uint64 proposal_id = 1; 
     uint64 user_id = 2 [(validate.rules).uint64.gt = 0]; 
     uint64 lesson_id = 3 [(validate.rules).uint64.gt = 0]; 
     uint64 document_id = 4 [(validate.rules).uint64.gt = 0];
@@ -19,7 +19,7 @@ message CreateProposalV1Request {
 }
 
 message CreateProposalV1Response {
-    uint64 proposal = 1 [(validate.rules).uint64.gt = 0];
+    uint64 proposal_id = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message CreateMultiProposalV1Request {
@@ -31,7 +31,7 @@ message CreateMultiProposalV1Response {
 }
 
 message RemoveProposalV1Request {
-    uint64 proposal = 1  [(validate.rules).uint64.gt = 0];
+    uint64 proposal_id = 1  [(validate.rules).uint64.gt = 0];
 }
 
 message RemoveProposalV1Response {
@@ -40,7 +40,7 @@ message RemoveProposalV1Response {
 }
 
 message DescribeProposalV1Request {
-    uint64 proposal = 1  [(validate.rules).uint64.gt = 0];
+    uint64 proposal_id = 1  [(validate.rules).uint64.gt = 0];
 }
 
 message DescribeProposalV1Response {

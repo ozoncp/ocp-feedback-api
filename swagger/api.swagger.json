@@ -11,7 +11,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/proposals": {
+    "/batch/v1/proposals": {
       "post": {
         "operationId": "OcpProposalApi_CreateMultiProposalV1",
         "responses": {
@@ -41,8 +41,76 @@
         "tags": [
           "OcpProposalApi"
         ]
+      }
+    },
+    "/v1/proposals": {
+      "get": {
+        "operationId": "OcpProposalApi_ListProposalsV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiListProposalsV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "OcpProposalApi"
+        ]
       },
-      "patch": {
+      "post": {
+        "operationId": "OcpProposalApi_CreateProposalV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiCreateProposalV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiProposal"
+            }
+          }
+        ],
+        "tags": [
+          "OcpProposalApi"
+        ]
+      },
+      "put": {
         "operationId": "OcpProposalApi_UpdateProposalV1",
         "responses": {
           "200": {
@@ -73,45 +141,7 @@
         ]
       }
     },
-    "/v1/proposals/{offset}/{limit}": {
-      "get": {
-        "operationId": "OcpProposalApi_ListProposalsV1",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiListProposalsV1Response"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "offset",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "limit",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
-        "tags": [
-          "OcpProposalApi"
-        ]
-      }
-    },
-    "/v1/proposals/{proposal}": {
+    "/v1/proposals/{proposal_id}": {
       "get": {
         "operationId": "OcpProposalApi_DescribeProposalV1",
         "responses": {
@@ -130,7 +160,7 @@
         },
         "parameters": [
           {
-            "name": "proposal",
+            "name": "proposal_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -159,7 +189,7 @@
         },
         "parameters": [
           {
-            "name": "proposal",
+            "name": "proposal_id",
             "in": "path",
             "required": true,
             "type": "string",
@@ -199,7 +229,7 @@
     "apiCreateProposalV1Response": {
       "type": "object",
       "properties": {
-        "proposal": {
+        "proposal_id": {
           "type": "string",
           "format": "uint64"
         }
@@ -227,7 +257,7 @@
     "apiProposal": {
       "type": "object",
       "properties": {
-        "id": {
+        "proposal_id": {
           "type": "string",
           "format": "uint64"
         },

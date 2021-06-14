@@ -40,7 +40,7 @@ func (m *Proposal) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Id
+	// no validation rules for ProposalId
 
 	if m.GetUserId() <= 0 {
 		return ProposalValidationError{
@@ -212,9 +212,9 @@ func (m *CreateProposalV1Response) Validate() error {
 		return nil
 	}
 
-	if m.GetProposal() <= 0 {
+	if m.GetProposalId() <= 0 {
 		return CreateProposalV1ResponseValidationError{
-			field:  "Proposal",
+			field:  "ProposalId",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -451,9 +451,9 @@ func (m *RemoveProposalV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetProposal() <= 0 {
+	if m.GetProposalId() <= 0 {
 		return RemoveProposalV1RequestValidationError{
-			field:  "Proposal",
+			field:  "ProposalId",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -592,9 +592,9 @@ func (m *DescribeProposalV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetProposal() <= 0 {
+	if m.GetProposalId() <= 0 {
 		return DescribeProposalV1RequestValidationError{
-			field:  "Proposal",
+			field:  "ProposalId",
 			reason: "value must be greater than 0",
 		}
 	}

@@ -42,7 +42,7 @@ func TestClientCreateProposal(t *testing.T) {
 	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
-	require.Equal(t, uint64(1), respCreate.Proposal)
+	require.Equal(t, uint64(1), respCreate.ProposalId)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
@@ -159,14 +159,14 @@ func TestClientRemoveProposal(t *testing.T) {
 	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
-	require.Equal(t, uint64(1), respCreate.Proposal)
+	require.Equal(t, uint64(1), respCreate.ProposalId)
 
 	mock.ExpectQuery("SELECT 1 FROM reaction.proposal").
-		WithArgs(respCreate.Proposal).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+		WithArgs(respCreate.ProposalId).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectExec("DELETE FROM reaction.proposal").
-		WithArgs(respCreate.Proposal).WillReturnResult(sqlmock.NewResult(1, 1))
+		WithArgs(respCreate.ProposalId).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	reqRemove := &pr.RemoveProposalV1Request{Proposal: respCreate.Proposal}
+	reqRemove := &pr.RemoveProposalV1Request{ProposalId: respCreate.ProposalId}
 	respRemove, err := client.RemoveProposalV1(context.Background(), reqRemove)
 	require.NoError(t, err)
 	require.NotNil(t, respRemove)
@@ -176,13 +176,13 @@ func TestClientRemoveProposal(t *testing.T) {
 	}
 
 	// try to remove the it the second time
-	reqRemove = &pr.RemoveProposalV1Request{Proposal: respCreate.Proposal}
+	reqRemove = &pr.RemoveProposalV1Request{ProposalId: respCreate.ProposalId}
 	respRemove, err = client.RemoveProposalV1(context.Background(), reqRemove)
 	require.Error(t, err)
 	require.Nil(t, respRemove)
 
 	// invalid reqest
-	reqRemove = &pr.RemoveProposalV1Request{Proposal: 0}
+	reqRemove = &pr.RemoveProposalV1Request{ProposalId: 0}
 	respRemove, err = client.RemoveProposalV1(context.Background(), reqRemove)
 	require.Error(t, err)
 	require.Nil(t, respRemove)
@@ -214,7 +214,7 @@ func TestClientDescribeProposal(t *testing.T) {
 	respCreate, err1 := client.CreateProposalV1(context.Background(), reqCreate)
 	require.NoError(t, err1)
 	require.NotNil(t, respCreate)
-	require.Equal(t, uint64(1), respCreate.Proposal)
+	require.Equal(t, uint64(1), respCreate.ProposalId)
 
 	returned := sqlmock.NewRows([]string{
 		"id",
@@ -224,14 +224,14 @@ func TestClientDescribeProposal(t *testing.T) {
 	).AddRow(1, np.UserId, np.LessonId, np.DocumentId)
 
 	mock.ExpectQuery("SELECT id, user_id, lesson_id, document_id FROM reaction.proposal").
-		WithArgs(respCreate.Proposal).WillReturnRows(returned)
+		WithArgs(respCreate.ProposalId).WillReturnRows(returned)
 
 	// valid request
-	reqDescribe := &pr.DescribeProposalV1Request{Proposal: respCreate.Proposal}
+	reqDescribe := &pr.DescribeProposalV1Request{ProposalId: respCreate.ProposalId}
 	respDescribe, err := client.DescribeProposalV1(context.Background(), reqDescribe)
 	require.NoError(t, err)
 	require.NotNil(t, respDescribe)
-	require.Equal(t, respDescribe.Proposal.Id, uint64(1))
+	require.Equal(t, respDescribe.Proposal.ProposalId, uint64(1))
 	require.Equal(t, respDescribe.Proposal.UserId, np.UserId)
 	require.Equal(t, respDescribe.Proposal.LessonId, np.LessonId)
 	require.Equal(t, respDescribe.Proposal.DocumentId, np.DocumentId)
@@ -241,13 +241,13 @@ func TestClientDescribeProposal(t *testing.T) {
 	}
 
 	// missing id
-	reqDescribe = &pr.DescribeProposalV1Request{Proposal: respCreate.Proposal + 1}
+	reqDescribe = &pr.DescribeProposalV1Request{ProposalId: respCreate.ProposalId + 1}
 	respDescribe, err = client.DescribeProposalV1(context.Background(), reqDescribe)
 	require.Error(t, err)
 	require.Nil(t, respDescribe)
 
 	// invalid request
-	reqDescribe = &pr.DescribeProposalV1Request{Proposal: 0}
+	reqDescribe = &pr.DescribeProposalV1Request{ProposalId: 0}
 	respDescribe, err = client.DescribeProposalV1(context.Background(), reqDescribe)
 	require.Error(t, err)
 	require.Nil(t, respDescribe)
@@ -309,12 +309,12 @@ func TestClientListProposal(t *testing.T) {
 	require.NotNil(t, respList)
 	require.Equal(t, len(respList.Proposals), 2)
 
-	require.Equal(t, respList.Proposals[0].Id, uint64(1))
+	require.Equal(t, respList.Proposals[0].ProposalId, uint64(1))
 	require.Equal(t, respList.Proposals[0].UserId, np1.UserId)
 	require.Equal(t, respList.Proposals[0].LessonId, np1.LessonId)
 	require.Equal(t, respList.Proposals[0].DocumentId, np1.DocumentId)
 
-	require.Equal(t, respList.Proposals[1].Id, uint64(2))
+	require.Equal(t, respList.Proposals[1].ProposalId, uint64(2))
 	require.Equal(t, respList.Proposals[1].UserId, np2.UserId)
 	require.Equal(t, respList.Proposals[1].LessonId, np2.LessonId)
 	require.Equal(t, respList.Proposals[1].DocumentId, np2.DocumentId)
@@ -370,13 +370,13 @@ func TestClientUpdateProposal(t *testing.T) {
 	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
-	require.Equal(t, uint64(1), respCreate.Proposal)
+	require.Equal(t, uint64(1), respCreate.ProposalId)
 
 	mock.ExpectQuery("SELECT 1 FROM reaction.proposal").
-		WithArgs(respCreate.Proposal).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
-	np2 := pr.Proposal{Id: 1, UserId: 10, LessonId: 20, DocumentId: 30}
+		WithArgs(respCreate.ProposalId).WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
+	np2 := pr.Proposal{ProposalId: 1, UserId: 10, LessonId: 20, DocumentId: 30}
 	mock.ExpectExec("UPDATE reaction.proposal").
-		WithArgs(np2.UserId, np2.LessonId, np2.DocumentId, np2.Id).WillReturnResult(sqlmock.NewResult(0, 1))
+		WithArgs(np2.UserId, np2.LessonId, np2.DocumentId, np2.ProposalId).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	reqUpdate := &pr.UpdateProposalV1Request{Proposal: &np2}
 	respUpdate, err := client.UpdateProposalV1(context.Background(), reqUpdate)

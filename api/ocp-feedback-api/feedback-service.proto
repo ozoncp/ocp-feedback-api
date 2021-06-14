@@ -18,33 +18,33 @@ service OcpFeedbackApi {
     
     rpc CreateMultiFeedbackV1(CreateMultiFeedbackV1Request) returns (CreateMultiFeedbackV1Response) {
         option (google.api.http) = {
-            post: "/v1/feedbacks"
+            post: "/batch/v1/feedbacks"
             body: "*"
         };
     }
 
     rpc RemoveFeedbackV1(RemoveFeedbackV1Request) returns (RemoveFeedbackV1Response) {
         option (google.api.http) = {
-            delete: "/v1/feedbacks/{feedback}"
+            delete: "/v1/feedbacks/{feedback_id}"
         };
     }
 
     rpc DescribeFeedbackV1(DescribeFeedbackV1Request) returns (DescribeFeedbackV1Response) {
         option (google.api.http) = {
-            get: "/v1/feedbacks/{feedback}"
+            get: "/v1/feedbacks/{feedback_id}"
         };
     }
 
     rpc UpdateFeedbackV1(UpdateFeedbackV1Request) returns (UpdateFeedbackV1Response) {
         option (google.api.http) = {
-            patch: "/v1/feedbacks"
+            put: "/v1/feedbacks"
             body: "feedback"
         };
     }
 
     rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {
         option (google.api.http) = {
-            get: "/v1/feedbacks/{offset}/{limit}"
+            get: "/v1/feedbacks"
         };
     }
 }

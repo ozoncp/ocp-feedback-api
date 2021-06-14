@@ -45,7 +45,7 @@ func (s *FeedbackService) CreateFeedbackV1(
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
-	return &fb.CreateFeedbackV1Response{Feedback: ids[0]}, nil
+	return &fb.CreateFeedbackV1Response{FeedbackId: ids[0]}, nil
 }
 
 // CreateMultiFeedbackV1 creates multiple feedbacks
@@ -87,7 +87,7 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 		if err != nil {
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
-		res.Feedbacks = append(res.Feedbacks, ids...)
+		res.FeedbackId = append(res.FeedbackId, ids...)
 	}
 	return res, nil
 
@@ -104,7 +104,7 @@ func (s *FeedbackService) RemoveFeedbackV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := s.feedbackRepo.RemoveEntity(ctx, req.Feedback); err != nil {
+	if err := s.feedbackRepo.RemoveEntity(ctx, req.FeedbackId); err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to delete a feedback: %v", err)
 	}
 	return &fb.RemoveFeedbackV1Response{}, nil
@@ -121,13 +121,13 @@ func (s *FeedbackService) DescribeFeedbackV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.Feedback)
+	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.FeedbackId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to describe a feedback: %v", err)
 	}
 	f := entity.(*models.Feedback)
 	respFeedback := fb.Feedback{
-		Id:          f.Id,
+		FeedbackId:  f.Id,
 		UserId:      f.UserId,
 		ClassroomId: f.ClassroomId,
 		Comment:     f.Comment,
@@ -156,7 +156,7 @@ func (s *FeedbackService) ListFeedbacksV1(
 	for i := 0; i < len(entities); i++ {
 		f := entities[i].(*models.Feedback)
 		feedbacks = append(feedbacks, &fb.Feedback{
-			Id:          f.Id,
+			FeedbackId:  f.Id,
 			UserId:      f.UserId,
 			ClassroomId: f.ClassroomId,
 			Comment:     f.Comment,
@@ -177,7 +177,7 @@ func (s *FeedbackService) UpdateFeedbackV1(
 	}
 
 	f := &models.Feedback{
-		Id:          req.Feedback.Id,
+		Id:          req.Feedback.FeedbackId,
 		UserId:      req.Feedback.UserId,
 		ClassroomId: req.Feedback.ClassroomId,
 		Comment:     req.Feedback.Comment,

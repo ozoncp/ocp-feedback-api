@@ -46,7 +46,7 @@ func (s *ProposalService) CreateProposalV1(
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
-	return &pr.CreateProposalV1Response{Proposal: ids[0]}, nil
+	return &pr.CreateProposalV1Response{ProposalId: ids[0]}, nil
 }
 
 // CreateMultiProposalV1 creates multiple proposals
@@ -105,7 +105,7 @@ func (s *ProposalService) RemoveProposalV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err := s.proposalRepo.RemoveEntity(ctx, req.Proposal); err != nil {
+	if err := s.proposalRepo.RemoveEntity(ctx, req.ProposalId); err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to delete a proposal: %v", err)
 	}
 	return &pr.RemoveProposalV1Response{}, nil
@@ -122,13 +122,13 @@ func (s *ProposalService) DescribeProposalV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	entity, err := s.proposalRepo.DescribeEntity(ctx, req.Proposal)
+	entity, err := s.proposalRepo.DescribeEntity(ctx, req.ProposalId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "unable to describe a proposal: %v", err)
 	}
 	p := entity.(*models.Proposal)
 	respProposal := pr.Proposal{
-		Id:         p.Id,
+		ProposalId: p.Id,
 		UserId:     p.UserId,
 		LessonId:   p.LessonId,
 		DocumentId: p.DocumentId,
@@ -157,7 +157,7 @@ func (s *ProposalService) ListProposalsV1(
 	for i := 0; i < len(entities); i++ {
 		p := entities[i].(*models.Proposal)
 		proposals = append(proposals, &pr.Proposal{
-			Id:         p.Id,
+			ProposalId: p.Id,
 			UserId:     p.UserId,
 			LessonId:   p.LessonId,
 			DocumentId: p.DocumentId,
@@ -178,7 +178,7 @@ func (s *ProposalService) UpdateProposalV1(
 	}
 
 	p := &models.Proposal{
-		Id:         req.Proposal.Id,
+		Id:         req.Proposal.ProposalId,
 		UserId:     req.Proposal.UserId,
 		LessonId:   req.Proposal.LessonId,
 		DocumentId: req.Proposal.DocumentId,

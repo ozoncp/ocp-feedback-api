@@ -6,7 +6,7 @@ package ocp.feedback.api;
 option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api;ocp_feedback_api";
 
 message Feedback {
-    uint64 id = 1; 
+    uint64 feedback_id = 1; 
     uint64 user_id = 2 [(validate.rules).uint64.gt = 0];
     uint64 classroom_id = 3 [(validate.rules).uint64.gt = 0];
     string comment = 4 [(validate.rules).string.min_len = 1];
@@ -17,7 +17,7 @@ message CreateFeedbackV1Request {
 }
 
 message CreateFeedbackV1Response {
-    uint64 feedback = 1 [(validate.rules).uint64.gt = 0];
+    uint64 feedback_id = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message CreateMultiFeedbackV1Request {
@@ -25,11 +25,11 @@ message CreateMultiFeedbackV1Request {
 }
 
 message CreateMultiFeedbackV1Response {
-    repeated uint64 feedbacks = 1 [(validate.rules).repeated.min_items = 1];
+    repeated uint64 feedback_id = 1 [(validate.rules).repeated.min_items = 1];
 }
 
 message RemoveFeedbackV1Request {
-    uint64 feedback = 1 [(validate.rules).uint64.gt = 0];
+    uint64 feedback_id = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message RemoveFeedbackV1Response {
@@ -38,7 +38,7 @@ message RemoveFeedbackV1Response {
 }
 
 message DescribeFeedbackV1Request {
-    uint64 feedback = 1  [(validate.rules).uint64.gt = 0];
+    uint64 feedback_id = 1  [(validate.rules).uint64.gt = 0];
 }
 
 message DescribeFeedbackV1Response {

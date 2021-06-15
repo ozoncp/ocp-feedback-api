@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/Shopify/sarama/mocks"
 	"github.com/jmoiron/sqlx"
+	"github.com/ozoncp/ocp-feedback-api/internal/producer"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	"github.com/ozoncp/ocp-feedback-api/internal/server/proposal_grpc"
 	pr "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api"
@@ -24,9 +26,15 @@ func TestClientCreateProposal(t *testing.T) {
 	}
 	defer db.Close()
 
-	serverAddress := startTestGrpcServer(t,
-		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	serverAddress, prodMock := startTestGrpcServer(t, ctx,
+		repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
+
+	prodMock.ExpectInputAndSucceed()
 
 	// valid request
 	np1 := pr.Proposal{UserId: 10, LessonId: 20, DocumentId: 30}
@@ -39,7 +47,7 @@ func TestClientCreateProposal(t *testing.T) {
 	mock.ExpectCommit()
 
 	reqCreate := &pr.CreateProposalV1Request{Proposal: &np1}
-	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
+	respCreate, err := client.CreateProposalV1(ctx, reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
 	require.Equal(t, uint64(1), respCreate.ProposalId)
@@ -49,11 +57,12 @@ func TestClientCreateProposal(t *testing.T) {
 	}
 
 	// invalid request, must fail on validation
-	np2 := pr.Proposal{UserId: 0, LessonId: 20, DocumentId: 30}
+	np2 := pr.Proposal{UserId: 0, LessonId: 2000, DocumentId: 30}
 	reqCreate = &pr.CreateProposalV1Request{Proposal: &np2}
-	respCreate, err = client.CreateProposalV1(context.Background(), reqCreate)
+	respCreate, err = client.CreateProposalV1(ctx, reqCreate)
 	require.Error(t, err)
 	require.Nil(t, respCreate)
+
 }
 
 func TestClientCreateMultiProposal(t *testing.T) {
@@ -65,9 +74,18 @@ func TestClientCreateMultiProposal(t *testing.T) {
 	}
 	defer db.Close()
 
-	serverAddress := startTestGrpcServer(t,
-		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	serverAddress, prodMock := startTestGrpcServer(t, ctx,
+		repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
+
+	prodMock.ExpectInputAndSucceed()
+	prodMock.ExpectInputAndSucceed()
+	prodMock.ExpectInputAndSucceed()
+	prodMock.ExpectInputAndSucceed()
 
 	// valid request
 	pr1 := pr.Proposal{UserId: 42, LessonId: 24, DocumentId: 50}
@@ -111,7 +129,7 @@ func TestClientCreateMultiProposal(t *testing.T) {
 		WillReturnRows(assignedNumbers[3])
 	mock.ExpectCommit()
 
-	respMultiCreate, err := client.CreateMultiProposalV1(context.Background(), reqMultiCreate)
+	respMultiCreate, err := client.CreateMultiProposalV1(ctx, reqMultiCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respMultiCreate)
 	require.Equal(t, []uint64{1, 2, 3, 4}, respMultiCreate.Proposals)
@@ -128,7 +146,7 @@ func TestClientCreateMultiProposal(t *testing.T) {
 		},
 	}
 
-	respMultiCreate, err = client.CreateMultiProposalV1(context.Background(), reqMultiCreate)
+	respMultiCreate, err = client.CreateMultiProposalV1(ctx, reqMultiCreate)
 	require.Error(t, err)
 	require.Nil(t, respMultiCreate)
 }
@@ -142,9 +160,16 @@ func TestClientRemoveProposal(t *testing.T) {
 	}
 	defer db.Close()
 
-	serverAddress := startTestGrpcServer(t,
-		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	serverAddress, prodMock := startTestGrpcServer(t, ctx,
+		repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
+
+	prodMock.ExpectInputAndSucceed()
+	prodMock.ExpectInputAndSucceed()
 
 	np1 := pr.Proposal{UserId: 10, LessonId: 20, DocumentId: 30}
 
@@ -156,7 +181,7 @@ func TestClientRemoveProposal(t *testing.T) {
 	mock.ExpectCommit()
 
 	reqCreate := &pr.CreateProposalV1Request{Proposal: &np1}
-	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
+	respCreate, err := client.CreateProposalV1(ctx, reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
 	require.Equal(t, uint64(1), respCreate.ProposalId)
@@ -166,7 +191,7 @@ func TestClientRemoveProposal(t *testing.T) {
 		sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 	reqRemove := &pr.RemoveProposalV1Request{ProposalId: respCreate.ProposalId}
-	respRemove, err := client.RemoveProposalV1(context.Background(), reqRemove)
+	respRemove, err := client.RemoveProposalV1(ctx, reqRemove)
 	require.NoError(t, err)
 	require.NotNil(t, respRemove)
 
@@ -176,13 +201,13 @@ func TestClientRemoveProposal(t *testing.T) {
 
 	// try to remove the it the second time
 	reqRemove = &pr.RemoveProposalV1Request{ProposalId: respCreate.ProposalId}
-	respRemove, err = client.RemoveProposalV1(context.Background(), reqRemove)
+	respRemove, err = client.RemoveProposalV1(ctx, reqRemove)
 	require.Error(t, err)
 	require.Nil(t, respRemove)
 
 	// invalid reqest
 	reqRemove = &pr.RemoveProposalV1Request{ProposalId: 0}
-	respRemove, err = client.RemoveProposalV1(context.Background(), reqRemove)
+	respRemove, err = client.RemoveProposalV1(ctx, reqRemove)
 	require.Error(t, err)
 	require.Nil(t, respRemove)
 }
@@ -196,9 +221,15 @@ func TestClientDescribeProposal(t *testing.T) {
 	}
 	defer db.Close()
 
-	serverAddress := startTestGrpcServer(t,
-		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	serverAddress, prodMock := startTestGrpcServer(t, ctx,
+		repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
+
+	prodMock.ExpectInputAndSucceed()
 
 	np := pr.Proposal{UserId: 10, LessonId: 20, DocumentId: 30}
 
@@ -210,7 +241,7 @@ func TestClientDescribeProposal(t *testing.T) {
 	mock.ExpectCommit()
 
 	reqCreate := &pr.CreateProposalV1Request{Proposal: &np}
-	respCreate, err1 := client.CreateProposalV1(context.Background(), reqCreate)
+	respCreate, err1 := client.CreateProposalV1(ctx, reqCreate)
 	require.NoError(t, err1)
 	require.NotNil(t, respCreate)
 	require.Equal(t, uint64(1), respCreate.ProposalId)
@@ -227,7 +258,7 @@ func TestClientDescribeProposal(t *testing.T) {
 
 	// valid request
 	reqDescribe := &pr.DescribeProposalV1Request{ProposalId: respCreate.ProposalId}
-	respDescribe, err := client.DescribeProposalV1(context.Background(), reqDescribe)
+	respDescribe, err := client.DescribeProposalV1(ctx, reqDescribe)
 	require.NoError(t, err)
 	require.NotNil(t, respDescribe)
 	require.Equal(t, respDescribe.Proposal.ProposalId, uint64(1))
@@ -241,13 +272,13 @@ func TestClientDescribeProposal(t *testing.T) {
 
 	// missing id
 	reqDescribe = &pr.DescribeProposalV1Request{ProposalId: respCreate.ProposalId + 1}
-	respDescribe, err = client.DescribeProposalV1(context.Background(), reqDescribe)
+	respDescribe, err = client.DescribeProposalV1(ctx, reqDescribe)
 	require.Error(t, err)
 	require.Nil(t, respDescribe)
 
 	// invalid request
 	reqDescribe = &pr.DescribeProposalV1Request{ProposalId: 0}
-	respDescribe, err = client.DescribeProposalV1(context.Background(), reqDescribe)
+	respDescribe, err = client.DescribeProposalV1(ctx, reqDescribe)
 	require.Error(t, err)
 	require.Nil(t, respDescribe)
 }
@@ -261,9 +292,16 @@ func TestClientListProposal(t *testing.T) {
 	}
 	defer db.Close()
 
-	serverAddress := startTestGrpcServer(t,
-		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 1)
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	serverAddress, prodMock := startTestGrpcServer(t, ctx,
+		repo.NewProposalRepo(sqlx.NewDb(db, "")), 1)
 	client := newTestGrpcClient(t, serverAddress)
+
+	prodMock.ExpectInputAndSucceed()
+	prodMock.ExpectInputAndSucceed()
 
 	np1 := pr.Proposal{UserId: 42, LessonId: 24, DocumentId: 50}
 	np2 := pr.Proposal{UserId: 420, LessonId: 240, DocumentId: 500}
@@ -285,7 +323,7 @@ func TestClientListProposal(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(2))
 	mock.ExpectCommit()
 
-	respMultiCreate, err := client.CreateMultiProposalV1(context.Background(), reqCreate)
+	respMultiCreate, err := client.CreateMultiProposalV1(ctx, reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respMultiCreate)
 
@@ -303,7 +341,7 @@ func TestClientListProposal(t *testing.T) {
 
 	// valid request
 	reqList := &pr.ListProposalsV1Request{Limit: 2, Offset: 0}
-	respList, err := client.ListProposalsV1(context.Background(), reqList)
+	respList, err := client.ListProposalsV1(ctx, reqList)
 	require.NoError(t, err)
 	require.NotNil(t, respList)
 	require.Equal(t, len(respList.Proposals), 2)
@@ -352,9 +390,16 @@ func TestClientUpdateProposal(t *testing.T) {
 	}
 	defer db.Close()
 
-	serverAddress := startTestGrpcServer(t,
-		nil, repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	serverAddress, prodMock := startTestGrpcServer(t, ctx,
+		repo.NewProposalRepo(sqlx.NewDb(db, "")), 2)
 	client := newTestGrpcClient(t, serverAddress)
+
+	prodMock.ExpectInputAndSucceed()
+	prodMock.ExpectInputAndSucceed()
 
 	np1 := pr.Proposal{UserId: 42, LessonId: 24, DocumentId: 100}
 
@@ -366,7 +411,7 @@ func TestClientUpdateProposal(t *testing.T) {
 	mock.ExpectCommit()
 
 	reqCreate := &pr.CreateProposalV1Request{Proposal: &np1}
-	respCreate, err := client.CreateProposalV1(context.Background(), reqCreate)
+	respCreate, err := client.CreateProposalV1(ctx, reqCreate)
 	require.NoError(t, err)
 	require.NotNil(t, respCreate)
 	require.Equal(t, uint64(1), respCreate.ProposalId)
@@ -378,7 +423,7 @@ func TestClientUpdateProposal(t *testing.T) {
 	)
 
 	reqUpdate := &pr.UpdateProposalV1Request{Proposal: &np2}
-	respUpdate, err := client.UpdateProposalV1(context.Background(), reqUpdate)
+	respUpdate, err := client.UpdateProposalV1(ctx, reqUpdate)
 	require.NoError(t, err)
 	require.NotNil(t, respUpdate)
 
@@ -388,19 +433,26 @@ func TestClientUpdateProposal(t *testing.T) {
 
 	// invalid reqest
 	reqUpdate = &pr.UpdateProposalV1Request{}
-	respUpdate, err = client.UpdateProposalV1(context.Background(), reqUpdate)
+	respUpdate, err = client.UpdateProposalV1(ctx, reqUpdate)
 	require.Error(t, err)
 	require.Nil(t, respUpdate)
 }
 
 func startTestGrpcServer(t *testing.T,
-	feedbackRepo repo.Repo,
+	ctx context.Context,
 	proposalRepo repo.Repo,
 	chunks int,
-) string {
+) (string, *mocks.AsyncProducer) {
 	zerolog.SetGlobalLevel(zerolog.Disabled)
 
-	service := proposal_grpc.New(proposalRepo, chunks)
+	asynProdMock := mocks.NewAsyncProducer(t, nil)
+	prod, err := producer.New("feedbacks", asynProdMock)
+	if err != nil {
+		t.Errorf("unable to create sarama mock: %s", err)
+	}
+	prod.Init(ctx)
+
+	service := proposal_grpc.New(proposalRepo, prod, chunks)
 	grpcServer := grpc.NewServer()
 	pr.RegisterOcpProposalApiServer(grpcServer, service)
 	listener, err := net.Listen("tcp", ":0") // random available port
@@ -409,7 +461,7 @@ func startTestGrpcServer(t *testing.T,
 		err := grpcServer.Serve(listener)
 		require.NoError(t, err)
 	}()
-	return listener.Addr().String()
+	return listener.Addr().String(), asynProdMock
 }
 
 func newTestGrpcClient(t *testing.T, serverAddress string) pr.OcpProposalApiClient {

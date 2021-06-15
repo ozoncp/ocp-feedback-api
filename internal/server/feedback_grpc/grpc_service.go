@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
+	"github.com/ozoncp/ocp-feedback-api/internal/producer"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	"github.com/ozoncp/ocp-feedback-api/internal/utils"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
@@ -15,12 +16,16 @@ import (
 type FeedbackService struct {
 	fb.UnimplementedOcpFeedbackApiServer
 	feedbackRepo repo.Repo
+	prod         producer.Producer
 	chunks       int
 }
 
 // New returns a new Feedback GRPC service
-func New(fRepo repo.Repo, chunks int) *FeedbackService {
-	return &FeedbackService{feedbackRepo: fRepo, chunks: chunks}
+func New(fRepo repo.Repo, producer producer.Producer, chunks int) *FeedbackService {
+	return &FeedbackService{
+		feedbackRepo: fRepo,
+		prod:         producer,
+		chunks:       chunks}
 }
 
 // CreateFeedbackV1 saves a new feedback
@@ -45,6 +50,7 @@ func (s *FeedbackService) CreateFeedbackV1(
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
+	s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[0]))
 	return &fb.CreateFeedbackV1Response{FeedbackId: ids[0]}, nil
 }
 
@@ -88,6 +94,10 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
 		res.FeedbackId = append(res.FeedbackId, ids...)
+		for i := 0; i < len(ids); i++ {
+			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[i]))
+		}
+
 	}
 	return res, nil
 
@@ -110,6 +120,7 @@ func (s *FeedbackService) RemoveFeedbackV1(
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+	s.prod.SendEvent(producer.CreateEvent(producer.Remove, req.FeedbackId))
 	return &fb.RemoveFeedbackV1Response{}, nil
 }
 
@@ -194,5 +205,6 @@ func (s *FeedbackService) UpdateFeedbackV1(
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+	s.prod.SendEvent(producer.CreateEvent(producer.Update, req.Feedback.FeedbackId))
 	return &fb.UpdateFeedbackV1Response{}, nil
 }

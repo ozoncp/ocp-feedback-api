@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 
+	"github.com/Shopify/sarama"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-feedback-api/internal/producer"
@@ -19,8 +21,9 @@ import (
 )
 
 var (
-	grpcPort int
-	chunks   int
+	brokerList = []string{"127.0.0.1:29092"}
+	grpcPort   int
+	chunks     int
 
 	// postgres
 	dbUserName     string
@@ -72,12 +75,22 @@ func main() {
 	defer cancel()
 
 	// create asynchronous KAFKA producer
-	prod, err := producer.New("feedbacks")
+	config := sarama.NewConfig()
+	config.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
+	config.Producer.Compression = sarama.CompressionSnappy   // Compress messages
+	config.Producer.Flush.Frequency = 500 * time.Millisecond // Flush batches every 500ms
+
+	sarama, err := sarama.NewAsyncProducer(brokerList, config)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to start Sarama producer:%v")
+	}
+	prod, err := producer.New("feedbacks", sarama)
 	if err != nil {
 		log.Fatal().Err(err).Msg(err.Error())
 	}
 	prod.Init(ctx)
 
+	// create GRPC service
 	grpcEndpoint := fmt.Sprintf("localhost:%d", grpcPort)
 	lis, err := net.Listen("tcp", grpcEndpoint)
 	if err != nil {
@@ -87,7 +100,6 @@ func main() {
 	log.Info().Msgf("Starting feedback service at %v...", grpcEndpoint)
 
 	grpcServer := grpc.NewServer()
-
 	fb.RegisterOcpFeedbackApiServer(grpcServer,
 		feedback_service.New(
 			repo.NewFeedbackRepo(db),

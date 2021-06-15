@@ -3,14 +3,10 @@ package producer
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
-	"time"
 
 	"github.com/Shopify/sarama"
 )
-
-var brokerList = []string{"127.0.0.1:29092"}
 
 type Producer interface {
 	SendEvent(ev Event)
@@ -22,16 +18,8 @@ type producer struct {
 	events chan Event
 }
 
-func New(topic string) (*producer, error) {
-	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
-	config.Producer.Compression = sarama.CompressionSnappy   // Compress messages
-	config.Producer.Flush.Frequency = 500 * time.Millisecond // Flush batches every 500ms
+func New(topic string, prod sarama.AsyncProducer) (*producer, error) {
 
-	prod, err := sarama.NewAsyncProducer(brokerList, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start Sarama producer:%v", err)
-	}
 	return &producer{
 		prod:   prod,
 		topic:  topic,

@@ -31,6 +31,7 @@ func (p *producer) Init(ctx context.Context) {
 	go func() {
 		for err := range p.prod.Errors() {
 			log.Println("Failed to write entry:", err)
+			//TODO: write message to disk to read and re-transmit later
 		}
 	}()
 	go func() {

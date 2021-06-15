@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
+	"github.com/ozoncp/ocp-feedback-api/internal/producer"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	"github.com/ozoncp/ocp-feedback-api/internal/utils"
 	pr "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api"
@@ -15,12 +16,17 @@ import (
 type ProposalService struct {
 	pr.UnimplementedOcpProposalApiServer
 	proposalRepo repo.Repo
+	prod         producer.Producer
 	chunks       int
 }
 
-// New returns a new Feedback GRPC server
-func New(pRepo repo.Repo, chunks int) *ProposalService {
-	return &ProposalService{proposalRepo: pRepo, chunks: chunks}
+// New returns a new Proposal GRPC server
+func New(pRepo repo.Repo, producer producer.Producer, chunks int) *ProposalService {
+	return &ProposalService{
+		proposalRepo: pRepo,
+		chunks:       chunks,
+		prod:         producer,
+	}
 }
 
 // CreateProposalV1 saves a new proposal
@@ -29,7 +35,7 @@ func (s *ProposalService) CreateProposalV1(
 	req *pr.CreateProposalV1Request,
 ) (*pr.CreateProposalV1Response, error) {
 
-	log.Info().Msgf("Handle request for CreateProposalV1Request: %v", req)
+	log.Info().Msgf("Handle request for CreateProposalV1: %v", req)
 	if err := req.Validate(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument,
 			"request is invalid: %v",
@@ -46,6 +52,7 @@ func (s *ProposalService) CreateProposalV1(
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
+	s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[0]))
 	return &pr.CreateProposalV1Response{ProposalId: ids[0]}, nil
 }
 
@@ -89,6 +96,9 @@ func (s *ProposalService) CreateMultiProposalV1(
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
 		res.Proposals = append(res.Proposals, ids...)
+		for i := 0; i < len(ids); i++ {
+			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[i]))
+		}
 	}
 	return res, nil
 
@@ -111,6 +121,7 @@ func (s *ProposalService) RemoveProposalV1(
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+	s.prod.SendEvent(producer.CreateEvent(producer.Remove, req.ProposalId))
 	return &pr.RemoveProposalV1Response{}, nil
 }
 
@@ -195,5 +206,6 @@ func (s *ProposalService) UpdateProposalV1(
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+	s.prod.SendEvent(producer.CreateEvent(producer.Update, req.Proposal.ProposalId))
 	return &pr.UpdateProposalV1Response{}, nil
 }

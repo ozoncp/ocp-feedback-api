@@ -55,8 +55,7 @@ func (p *producer) Init(ctx context.Context) {
 					log.Println("Failed to marshal event:", err)
 					return
 				}
-				message := &sarama.ProducerMessage{Topic: p.topic, Value: sarama.StringEncoder(bytes)}
-				p.prod.Input() <- message
+				p.prod.Input() <- &sarama.ProducerMessage{Topic: p.topic, Value: sarama.StringEncoder(bytes)}
 			case <-ctx.Done():
 				return
 			}

@@ -19,7 +19,6 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/rs/zerolog v1.22.0
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc // indirect
-	github.com/stretchr/testify v1.7.0
 	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273 // indirect

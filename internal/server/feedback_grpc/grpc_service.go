@@ -5,6 +5,7 @@ import (
 
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 	"github.com/ozoncp/ocp-feedback-api/internal/producer"
+	"github.com/ozoncp/ocp-feedback-api/internal/prommetrics"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	"github.com/ozoncp/ocp-feedback-api/internal/utils"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
@@ -17,14 +18,20 @@ type FeedbackService struct {
 	fb.UnimplementedOcpFeedbackApiServer
 	feedbackRepo repo.Repo
 	prod         producer.Producer
+	promMetrics  prommetrics.PromMetrics
 	chunks       int
 }
 
 // New returns a new Feedback GRPC service
-func New(fRepo repo.Repo, producer producer.Producer, chunks int) *FeedbackService {
+func New(fRepo repo.Repo,
+	producer producer.Producer,
+	promMetrics prommetrics.PromMetrics,
+	chunks int,
+) *FeedbackService {
 	return &FeedbackService{
 		feedbackRepo: fRepo,
 		prod:         producer,
+		promMetrics:  promMetrics,
 		chunks:       chunks}
 }
 
@@ -51,6 +58,7 @@ func (s *FeedbackService) CreateFeedbackV1(
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
 	s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[0]))
+	s.promMetrics.IncCreate()
 	return &fb.CreateFeedbackV1Response{FeedbackId: ids[0]}, nil
 }
 
@@ -96,6 +104,7 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 		res.FeedbackId = append(res.FeedbackId, ids...)
 		for i := 0; i < len(ids); i++ {
 			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[i]))
+			s.promMetrics.IncCreate()
 		}
 
 	}
@@ -121,6 +130,7 @@ func (s *FeedbackService) RemoveFeedbackV1(
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	s.prod.SendEvent(producer.CreateEvent(producer.Remove, req.FeedbackId))
+	s.promMetrics.IncRemove()
 	return &fb.RemoveFeedbackV1Response{}, nil
 }
 
@@ -206,5 +216,6 @@ func (s *FeedbackService) UpdateFeedbackV1(
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	s.prod.SendEvent(producer.CreateEvent(producer.Update, req.Feedback.FeedbackId))
+	s.promMetrics.IncUpdate()
 	return &fb.UpdateFeedbackV1Response{}, nil
 }

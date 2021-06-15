@@ -8,14 +8,18 @@ import (
 	"github.com/Shopify/sarama"
 )
 
+type void struct{}
+
 type Producer interface {
 	SendEvent(ev Event)
+	Close()
 }
 
 type producer struct {
 	prod   sarama.AsyncProducer
 	topic  string
 	events chan Event
+	done   chan void
 }
 
 func New(topic string, prod sarama.AsyncProducer) (*producer, error) {
@@ -24,10 +28,12 @@ func New(topic string, prod sarama.AsyncProducer) (*producer, error) {
 		prod:   prod,
 		topic:  topic,
 		events: make(chan Event),
+		done:   make(chan void),
 	}, nil
 }
 
 func (p *producer) Init(ctx context.Context) {
+
 	go func() {
 		for err := range p.prod.Errors() {
 			log.Println("Failed to write entry:", err)
@@ -37,6 +43,7 @@ func (p *producer) Init(ctx context.Context) {
 	go func() {
 		defer p.prod.Close()
 		for {
+
 			select {
 			case event := <-p.events:
 				bytes, err := json.Marshal(event)
@@ -51,8 +58,8 @@ func (p *producer) Init(ctx context.Context) {
 					//TODO: write message to disk to read and re-transmit later
 				}
 			case <-ctx.Done():
+				p.done <- void{}
 				return
-
 			}
 		}
 	}()
@@ -60,4 +67,8 @@ func (p *producer) Init(ctx context.Context) {
 
 func (p *producer) SendEvent(ev Event) {
 	p.events <- ev
+}
+
+func (p *producer) Close() {
+	<-p.done
 }

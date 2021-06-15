@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"time"
 
@@ -12,11 +13,14 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-feedback-api/internal/producer"
+	"github.com/ozoncp/ocp-feedback-api/internal/prommetrics"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	feedback_service "github.com/ozoncp/ocp-feedback-api/internal/server/feedback_grpc"
 	fb "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 )
 
@@ -33,6 +37,9 @@ var (
 	dbName         string
 	dbMaxOpenConns int
 	dbMaxIdleConns int
+
+	// prometheus
+	promAddr string
 )
 
 func init() {
@@ -45,6 +52,7 @@ func init() {
 	flag.StringVar(&dbName, "db_name", "postgres", "Database name")
 	flag.IntVar(&dbMaxOpenConns, "db_MaxOpenConnections", 15, "Number of total open connections to the database")
 	flag.IntVar(&dbMaxIdleConns, "db_MaxIdleConnections", 5, "Number of idle connections in the pool")
+	flag.StringVar(&promAddr, "prom-address", ":2112", "The address to listen on for HTTP requests.")
 }
 
 func main() {
@@ -84,6 +92,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start Sarama producer:%v")
 	}
+
 	prod, err := producer.New("feedbacks", sarama)
 	if err != nil {
 		log.Fatal().Err(err).Msg(err.Error())
@@ -96,7 +105,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Cannot start feedback grpc server at %v", grpcEndpoint)
 	}
-
 	log.Info().Msgf("Starting feedback service at %v...", grpcEndpoint)
 
 	grpcServer := grpc.NewServer()
@@ -104,11 +112,25 @@ func main() {
 		feedback_service.New(
 			repo.NewFeedbackRepo(db),
 			prod,
+			prommetrics.New("feedback"),
 			chunks,
 		),
 	)
 
-	if err = grpcServer.Serve(lis); err != nil {
-		log.Fatal().Err(err).Msg("Cannot accept connections")
+	var group errgroup.Group
+	group.Go(func() error {
+		log.Info().Msg("Serving grpc requests...")
+		return grpcServer.Serve(lis)
+	})
+
+	group.Go(func() error {
+		log.Info().Msgf("Serving Prometheus metrics at %v", promAddr)
+		http.Handle("/metrics", promhttp.Handler())
+		return http.ListenAndServe(promAddr, nil)
+	})
+
+	if err = group.Wait(); err != nil {
+		log.Error().Msgf("Terminated abnormally: %v", err)
 	}
+	log.Error().Msgf("Terminated normally: %v", err)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 	"github.com/ozoncp/ocp-feedback-api/internal/producer"
+	"github.com/ozoncp/ocp-feedback-api/internal/prommetrics"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	"github.com/ozoncp/ocp-feedback-api/internal/utils"
 	pr "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api"
@@ -17,14 +18,20 @@ type ProposalService struct {
 	pr.UnimplementedOcpProposalApiServer
 	proposalRepo repo.Repo
 	prod         producer.Producer
+	promMetrics  prommetrics.PromMetrics
 	chunks       int
 }
 
 // New returns a new Proposal GRPC server
-func New(pRepo repo.Repo, producer producer.Producer, chunks int) *ProposalService {
+func New(pRepo repo.Repo,
+	producer producer.Producer,
+	promMetrics prommetrics.PromMetrics,
+	chunks int,
+) *ProposalService {
 	return &ProposalService{
 		proposalRepo: pRepo,
 		chunks:       chunks,
+		promMetrics:  promMetrics,
 		prod:         producer,
 	}
 }
@@ -53,6 +60,7 @@ func (s *ProposalService) CreateProposalV1(
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
 	s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[0]))
+	s.promMetrics.IncCreate()
 	return &pr.CreateProposalV1Response{ProposalId: ids[0]}, nil
 }
 
@@ -98,6 +106,7 @@ func (s *ProposalService) CreateMultiProposalV1(
 		res.Proposals = append(res.Proposals, ids...)
 		for i := 0; i < len(ids); i++ {
 			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[i]))
+			s.promMetrics.IncCreate()
 		}
 	}
 	return res, nil
@@ -122,6 +131,7 @@ func (s *ProposalService) RemoveProposalV1(
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	s.prod.SendEvent(producer.CreateEvent(producer.Remove, req.ProposalId))
+	s.promMetrics.IncRemove()
 	return &pr.RemoveProposalV1Response{}, nil
 }
 
@@ -207,5 +217,6 @@ func (s *ProposalService) UpdateProposalV1(
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	s.prod.SendEvent(producer.CreateEvent(producer.Update, req.Proposal.ProposalId))
+	s.promMetrics.IncUpdate()
 	return &pr.UpdateProposalV1Response{}, nil
 }

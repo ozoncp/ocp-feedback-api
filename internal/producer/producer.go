@@ -46,6 +46,9 @@ func (p *producer) Init(ctx context.Context) {
 				p.prod.Input() <- &sarama.ProducerMessage{Topic: p.topic, Value: sarama.StringEncoder(bytes)}
 			case <-ctx.Done():
 				return
+			default:
+				log.Println("Failed to send message, broker is down")
+				//TODO: write message to disk to read and re-transmit later
 			}
 		}
 	}()

@@ -1,0 +1,7 @@
+FROM postgres
+ENV POSTGRES_USER postgres
+ENV POSTGRES_PASSWORD postgres
+ENV POSTGRES_DB postgres
+EXPOSE 5432
+
+COPY init_db_schema.sh /docker-entrypoint-initdb.d/

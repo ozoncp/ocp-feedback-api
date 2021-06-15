@@ -1,6 +1,7 @@
 package alarmer
 
 import (
+	"context"
 	"time"
 )
 
@@ -27,8 +28,8 @@ func New(duration time.Duration) *alarmer {
 }
 
 // Init starts repeatedly delivering asynchronous
-// notifications at regular intervals until Close is called
-func (a *alarmer) Init() {
+// notifications at regular intervals until context is cancelled
+func (a *alarmer) Init(ctx context.Context) {
 	go func() {
 		ticker := time.NewTicker(a.duration)
 		defer close(a.alarms)
@@ -41,7 +42,8 @@ func (a *alarmer) Init() {
 				case a.alarms <- void{}:
 				default:
 				}
-			case <-a.done:
+			case <-ctx.Done():
+				a.done <- void{}
 				return
 			}
 		}
@@ -53,7 +55,7 @@ func (a *alarmer) Alarm() <-chan void {
 	return a.alarms
 }
 
-// Close notifies alarmer that no more alarms should be delivered
-func (a *alarmer) Close() {
-	close(a.done)
+// WaitClose waits until alarmer is closed
+func (a *alarmer) WaitClosed() {
+	<-a.done
 }

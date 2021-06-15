@@ -1,6 +1,7 @@
 package flusher_test
 
 import (
+	"context"
 	"errors"
 
 	"github.com/golang/mock/gomock"
@@ -44,20 +45,22 @@ var _ = Describe("Flusher", func() {
 		var (
 			err        error
 			controller *gomock.Controller
-			mockRepo   *mocks.MockRepo
+			mockRepo   *mocks.MockBatchAdder
 			entities   []models.Entity
 			remain     []models.Entity
 			f          flusher.Flusher
+			ctx        context.Context
 		)
 
 		BeforeEach(func() {
 			// prevent vars from being mutated by It blocks
 			err = nil
 			controller = gomock.NewController(GinkgoT())
-			mockRepo = mocks.NewMockRepo(controller)
+			mockRepo = mocks.NewMockBatchAdder(controller)
 			entities = nil
 			remain = nil
 			f = nil
+			ctx = context.Background()
 		})
 
 		AfterEach(func() {
@@ -67,7 +70,7 @@ var _ = Describe("Flusher", func() {
 		When("slice is nil", func() {
 			It("should return error", func() {
 				f, _ = flusher.New(1, mockRepo)
-				remain, err = f.Flush(entities)
+				remain, err = f.Flush(ctx, entities)
 				Ω(err).Should(HaveOccurred())
 				Ω(remain).Should(BeNil())
 			})
@@ -83,10 +86,10 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(len(entities)/2, mockRepo)
 				gomock.InOrder(
-					mockRepo.EXPECT().AddEntities(entities[:2]),
-					mockRepo.EXPECT().AddEntities(entities[2:]),
+					mockRepo.EXPECT().AddEntities(ctx, entities[:2]),
+					mockRepo.EXPECT().AddEntities(ctx, entities[2:]),
 				)
-				remain, err = f.Flush(entities)
+				remain, err = f.Flush(ctx, entities)
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(remain).Should(BeNil())
 			})
@@ -101,11 +104,11 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(2, mockRepo)
 				gomock.InOrder(
-					mockRepo.EXPECT().AddEntities(entities[:2]),
-					mockRepo.EXPECT().AddEntities(entities[2:4]),
-					mockRepo.EXPECT().AddEntities(entities[4:]),
+					mockRepo.EXPECT().AddEntities(ctx, entities[:2]),
+					mockRepo.EXPECT().AddEntities(ctx, entities[2:4]),
+					mockRepo.EXPECT().AddEntities(ctx, entities[4:]),
 				)
-				remain, err = f.Flush(entities)
+				remain, err = f.Flush(ctx, entities)
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(remain).Should(BeNil())
 			})
@@ -118,9 +121,9 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(0, mockRepo)
 
-				mockRepo.EXPECT().AddEntities(entities)
+				mockRepo.EXPECT().AddEntities(ctx, entities)
 
-				remain, err = f.Flush(entities)
+				remain, err = f.Flush(ctx, entities)
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(remain).Should(BeNil())
 			})
@@ -133,9 +136,9 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(len(entities)+1, mockRepo)
 
-				mockRepo.EXPECT().AddEntities(entities)
+				mockRepo.EXPECT().AddEntities(ctx, entities)
 
-				remain, err = f.Flush(entities)
+				remain, err = f.Flush(ctx, entities)
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(remain).Should(BeNil())
 			})
@@ -152,11 +155,11 @@ var _ = Describe("Flusher", func() {
 				f, _ = flusher.New(2, mockRepo)
 
 				gomock.InOrder(
-					mockRepo.EXPECT().AddEntities(entities[:2]),
-					mockRepo.EXPECT().AddEntities(entities[2:]).Return(errors.New("add entities fails")),
+					mockRepo.EXPECT().AddEntities(ctx, entities[:2]),
+					mockRepo.EXPECT().AddEntities(ctx, entities[2:]).Return(nil, errors.New("add entities fails")),
 				)
 
-				remain, err = f.Flush(entities)
+				remain, err = f.Flush(ctx, entities)
 				Ω(err).Should(HaveOccurred())
 				Ω(remain).Should(BeEquivalentTo(entities[2:]))
 			})
@@ -170,9 +173,9 @@ var _ = Describe("Flusher", func() {
 				}
 				f, _ = flusher.New(2, mockRepo)
 
-				mockRepo.EXPECT().AddEntities(entities[:2]).Return(errors.New("add entities fails"))
+				mockRepo.EXPECT().AddEntities(ctx, entities[:2]).Return(nil, errors.New("add entities fails"))
 
-				remain, err = f.Flush(entities)
+				remain, err = f.Flush(ctx, entities)
 				Ω(err).Should(HaveOccurred())
 				Ω(remain).Should(BeEquivalentTo(entities))
 			})
@@ -182,18 +185,7 @@ var _ = Describe("Flusher", func() {
 
 type repoStub struct{}
 
-func (d *repoStub) AddEntities(entity []models.Entity) error {
-	return nil
-}
-func (d *repoStub) RemoveEntity(entityId uint64) error {
-	return nil
-}
-
-func (d *repoStub) DescribeEntity(entityId uint64) (*models.Entity, error) {
-	return nil, nil
-}
-
-func (d *repoStub) ListEntities(limit, offset uint64) ([]models.Entity, error) {
+func (d *repoStub) AddEntities(ctx context.Context, entities ...models.Entity) ([]uint64, error) {
 	return nil, nil
 }
 

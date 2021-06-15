@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+import "feedback-messages.proto";
+
+package ocp.feedback.api;
+
+option go_package = "github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api;ocp_feedback_api";
+
+service OcpFeedbackApi {
+
+    rpc CreateFeedbackV1(CreateFeedbackV1Request) returns (CreateFeedbackV1Response) {
+        option (google.api.http) = {
+            post: "/v1/feedbacks"
+            body: "feedback"
+        };
+    }
+    
+    rpc CreateMultiFeedbackV1(CreateMultiFeedbackV1Request) returns (CreateMultiFeedbackV1Response) {
+        option (google.api.http) = {
+            post: "/batch/v1/feedbacks"
+            body: "*"
+        };
+    }
+
+    rpc RemoveFeedbackV1(RemoveFeedbackV1Request) returns (RemoveFeedbackV1Response) {
+        option (google.api.http) = {
+            delete: "/v1/feedbacks/{feedback_id}"
+        };
+    }
+
+    rpc DescribeFeedbackV1(DescribeFeedbackV1Request) returns (DescribeFeedbackV1Response) {
+        option (google.api.http) = {
+            get: "/v1/feedbacks/{feedback_id}"
+        };
+    }
+
+    rpc UpdateFeedbackV1(UpdateFeedbackV1Request) returns (UpdateFeedbackV1Response) {
+        option (google.api.http) = {
+            put: "/v1/feedbacks"
+            body: "feedback"
+        };
+    }
+
+    rpc ListFeedbacksV1(ListFeedbacksV1Request) returns (ListFeedbacksV1Response) {
+        option (google.api.http) = {
+            get: "/v1/feedbacks"
+        };
+    }
+}
+

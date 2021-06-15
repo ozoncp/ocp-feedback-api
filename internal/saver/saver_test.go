@@ -1,8 +1,8 @@
 package saver_test
 
 import (
+	"context"
 	"errors"
-	"sync"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -87,24 +87,23 @@ var _ = Describe("Saver", func() {
 							&entityStub{id: 3},
 							&entityStub{id: 4},
 						}
-						var wg sync.WaitGroup
-						wg.Add(1)
-						defer wg.Wait()
 
 						saver, _ := saver.New(len(entities)+1, saver.DropAll, alarmer, mockFlusher)
+						ctx, cancel := context.WithCancel(context.Background())
+						defer saver.WaitClosed()
+						defer cancel()
 
 						gomock.InOrder(
-							mockFlusher.EXPECT().Flush(gomock.Eq(entities)),
-							mockFlusher.EXPECT().Flush(gomock.Eq(entities[:0])).Do(func(entities []models.Entity) { wg.Done() }),
+							mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities)),
+							mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities[:0])),
 						)
 
-						saver.Init()
+						saver.Init(ctx)
 
 						for i := 0; i < len(entities); i++ {
 							saver.Save(entities[i])
 						}
 						alarmer.alarm()
-						saver.Close()
 					})
 				})
 				When("Save is called before closing ", func() {
@@ -115,18 +114,18 @@ var _ = Describe("Saver", func() {
 							&entityStub{id: 3},
 							&entityStub{id: 4},
 						}
-						var wg sync.WaitGroup
-						wg.Add(1)
-						defer wg.Wait()
-
 						saver, _ := saver.New(len(entities)+1, saver.DropAll, alarmer, mockFlusher)
 
+						ctx, cancel := context.WithCancel(context.Background())
+						defer saver.WaitClosed()
+						defer cancel()
+
 						gomock.InOrder(
-							mockFlusher.EXPECT().Flush(gomock.Eq(entities[:2])),
-							mockFlusher.EXPECT().Flush(gomock.Eq(entities[2:])).Do(func(entities []models.Entity) { wg.Done() }),
+							mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities[:2])),
+							mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities[2:])),
 						)
 
-						saver.Init()
+						saver.Init(ctx)
 
 						for i := 0; i < 2; i++ {
 							saver.Save(entities[i])
@@ -136,8 +135,6 @@ var _ = Describe("Saver", func() {
 						for i := 2; i < len(entities); i++ {
 							saver.Save(entities[i])
 						}
-
-						saver.Close()
 					})
 				})
 
@@ -158,18 +155,17 @@ var _ = Describe("Saver", func() {
 							&entityStub{id: 20},
 						}
 
-						var wg sync.WaitGroup
-						wg.Add(1)
-						defer wg.Wait()
-
 						saver, _ := saver.New(len(entities), saver.DropAll, alarmer, mockFlusher)
+						ctx, cancel := context.WithCancel(context.Background())
+						defer saver.WaitClosed()
+						defer cancel()
 
 						gomock.InOrder(
-							mockFlusher.EXPECT().Flush(gomock.Eq(newEntities)),
-							mockFlusher.EXPECT().Flush(gomock.Eq(newEntities[:0])).Do(func(entities []models.Entity) { wg.Done() }),
+							mockFlusher.EXPECT().Flush(ctx, gomock.Eq(newEntities)),
+							mockFlusher.EXPECT().Flush(ctx, gomock.Eq(newEntities[:0])),
 						)
 
-						saver.Init()
+						saver.Init(ctx)
 
 						for i := 0; i < len(entities); i++ {
 							saver.Save(entities[i])
@@ -180,7 +176,6 @@ var _ = Describe("Saver", func() {
 						}
 
 						alarmer.alarm()
-						saver.Close()
 					})
 				})
 			})
@@ -201,18 +196,17 @@ var _ = Describe("Saver", func() {
 						&entityStub{id: 6},
 					}
 
-					var wg sync.WaitGroup
-					wg.Add(1)
-					defer wg.Wait()
-
 					saver, _ := saver.New(len(entities), saver.DropOne, alarmer, mockFlusher)
+					ctx, cancel := context.WithCancel(context.Background())
+					defer saver.WaitClosed()
+					defer cancel()
 
 					gomock.InOrder(
-						mockFlusher.EXPECT().Flush(gomock.Eq(shifted)),
-						mockFlusher.EXPECT().Flush(gomock.Eq(shifted[:0])).Do(func(entities []models.Entity) { wg.Done() }),
+						mockFlusher.EXPECT().Flush(ctx, gomock.Eq(shifted)),
+						mockFlusher.EXPECT().Flush(ctx, gomock.Eq(shifted[:0])),
 					)
 
-					saver.Init()
+					saver.Init(ctx)
 
 					for i := 0; i < len(entities); i++ {
 						saver.Save(entities[i])
@@ -222,7 +216,6 @@ var _ = Describe("Saver", func() {
 					saver.Save(&entityStub{id: 6})
 
 					alarmer.alarm()
-					saver.Close()
 				})
 			})
 		})
@@ -234,20 +227,20 @@ var _ = Describe("Saver", func() {
 					&entityStub{id: 3},
 					&entityStub{id: 4},
 				}
-				var wg sync.WaitGroup
-				wg.Add(1)
-				defer wg.Wait()
 
 				saver, _ := saver.New(len(entities)+1, saver.DropAll, alarmer, mockFlusher)
+				ctx, cancel := context.WithCancel(context.Background())
+				defer saver.WaitClosed()
+				defer cancel()
 
-				mockFlusher.EXPECT().Flush(gomock.Eq(entities)).Do(func(entities []models.Entity) { wg.Done() })
+				mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities))
 
-				saver.Init()
+				saver.Init(ctx)
 
 				for i := 0; i < len(entities); i++ {
 					saver.Save(entities[i])
 				}
-				saver.Close()
+				cancel()
 			})
 		})
 
@@ -259,26 +252,25 @@ var _ = Describe("Saver", func() {
 					&entityStub{id: 3},
 					&entityStub{id: 4},
 				}
-				var wg sync.WaitGroup
-				wg.Add(1)
-				defer wg.Wait()
 
 				saver, _ := saver.New(len(entities), saver.DropAll, alarmer, mockFlusher)
+				ctx, cancel := context.WithCancel(context.Background())
+				defer saver.WaitClosed()
+				defer cancel()
 
 				gomock.InOrder(
-					mockFlusher.EXPECT().Flush(gomock.Eq(entities)).
+					mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities)).
 						Return([]models.Entity{&entityStub{id: 3}, &entityStub{id: 4}},
 							errors.New("flushing failed")),
-					mockFlusher.EXPECT().Flush(gomock.Eq(entities[2:])).Do(func(entities []models.Entity) { wg.Done() }),
+					mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities[2:])),
 				)
 
-				saver.Init()
+				saver.Init(ctx)
 
 				for i := 0; i < len(entities); i++ {
 					saver.Save(entities[i])
 				}
 				alarmer.alarm()
-				saver.Close()
 			})
 		})
 
@@ -290,21 +282,20 @@ var _ = Describe("Saver", func() {
 					&entityStub{id: 3},
 					&entityStub{id: 4},
 				}
-				var wg sync.WaitGroup
-				wg.Add(1)
-				defer wg.Wait()
 
 				saver, _ := saver.New(len(entities), saver.DropAll, alarmer, mockFlusher)
+				ctx, cancel := context.WithCancel(context.Background())
+				defer saver.WaitClosed()
+				defer cancel()
 
-				mockFlusher.EXPECT().Flush(gomock.Eq(entities)).
-					Return(entities, errors.New("flushing failed")).Do(func(entities []models.Entity) { wg.Done() })
+				mockFlusher.EXPECT().Flush(ctx, gomock.Eq(entities)).
+					Return(entities, errors.New("flushing failed"))
 
-				saver.Init()
+				saver.Init(ctx)
 
 				for i := 0; i < len(entities); i++ {
 					saver.Save(entities[i])
 				}
-				saver.Close()
 			})
 		})
 	})
@@ -326,7 +317,7 @@ func (a *alarmerStub) alarm() {
 type flusherStub struct {
 }
 
-func (f *flusherStub) Flush(entities []models.Entity) ([]models.Entity, error) {
+func (f *flusherStub) Flush(ctx context.Context, entities []models.Entity) ([]models.Entity, error) {
 	return nil, nil
 }
 

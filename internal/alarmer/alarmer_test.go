@@ -1,6 +1,7 @@
 package alarmer_test
 
 import (
+	"context"
 	"sync/atomic"
 	"time"
 
@@ -30,10 +31,12 @@ var _ = Describe("Alarmer", func() {
 		Context("Alarmer looping", func() {
 			It("should be closed correctly", func() {
 				al := alarmer.New(10 * time.Millisecond)
-				al.Init()
+				ctx, cancel := context.WithCancel(context.Background())
+				al.Init(ctx)
 				timer := time.NewTimer(100 * time.Millisecond)
 				go func() {
-					defer al.Close()
+					defer al.WaitClosed()
+					defer cancel()
 					<-timer.C
 				}()
 				Eventually(al.Alarm()).Should(BeClosed())
@@ -42,10 +45,12 @@ var _ = Describe("Alarmer", func() {
 			It("should notify correct number of times (approximately) ", func() {
 				al := alarmer.New(40 * time.Millisecond)
 				var ticks int32
-				al.Init()
+				ctx, cancel := context.WithCancel(context.Background())
+				al.Init(ctx)
 				timer := time.NewTimer(400 * time.Millisecond)
 				go func() {
-					defer al.Close()
+					defer al.WaitClosed()
+					defer cancel()
 					<-timer.C
 					// timers are not very accurate
 					Ω(atomic.LoadInt32(&ticks)).Should(BeNumerically(">=", 9))

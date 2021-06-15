@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "api/ocp-feedback-api/ocp-feedback-api.proto",
+    "title": "proposal-service.proto",
     "version": "version not set"
   },
   "consumes": [
@@ -11,72 +11,14 @@
     "application/json"
   ],
   "paths": {
-    "/v1/feedbacks": {
-      "get": {
-        "operationId": "OcpFeedbackApi_ListFeedbacksV1",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiListFeedbacksV1Response"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
-        "tags": [
-          "OcpFeedbackApi"
-        ]
-      },
+    "/batch/v1/proposals": {
       "post": {
-        "operationId": "OcpFeedbackApi_CreateFeedbackV1",
+        "operationId": "OcpProposalApi_CreateMultiProposalV1",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apiCreateFeedbackV1Response"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "tags": [
-          "OcpFeedbackApi"
-        ]
-      }
-    },
-    "/v1/feedbacks/{feedback_id}": {
-      "get": {
-        "operationId": "OcpFeedbackApi_DescribeFeedbackV1",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiDescribeFeedbackV1Response"
+              "$ref": "#/definitions/apiCreateMultiProposalV1Response"
             }
           },
           "default": {
@@ -88,50 +30,22 @@
         },
         "parameters": [
           {
-            "name": "feedback_id",
-            "in": "path",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "string",
-            "format": "uint64"
+            "schema": {
+              "$ref": "#/definitions/apiCreateMultiProposalV1Request"
+            }
           }
         ],
         "tags": [
-          "OcpFeedbackApi"
-        ]
-      },
-      "delete": {
-        "operationId": "OcpFeedbackApi_RemoveFeedbackV1",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiRemoveFeedbackV1Response"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "feedback_id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
-        "tags": [
-          "OcpFeedbackApi"
+          "OcpProposalApi"
         ]
       }
     },
     "/v1/proposals": {
       "get": {
-        "operationId": "OcpFeedbackApi_ListProposalsV1",
+        "operationId": "OcpProposalApi_ListProposalsV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -163,11 +77,11 @@
           }
         ],
         "tags": [
-          "OcpFeedbackApi"
+          "OcpProposalApi"
         ]
       },
       "post": {
-        "operationId": "OcpFeedbackApi_CreateProposalV1",
+        "operationId": "OcpProposalApi_CreateProposalV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -182,14 +96,54 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiProposal"
+            }
+          }
+        ],
         "tags": [
-          "OcpFeedbackApi"
+          "OcpProposalApi"
+        ]
+      },
+      "put": {
+        "operationId": "OcpProposalApi_UpdateProposalV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateProposalV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiProposal"
+            }
+          }
+        ],
+        "tags": [
+          "OcpProposalApi"
         ]
       }
     },
     "/v1/proposals/{proposal_id}": {
       "get": {
-        "operationId": "OcpFeedbackApi_DescribeProposalV1",
+        "operationId": "OcpProposalApi_DescribeProposalV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -214,11 +168,11 @@
           }
         ],
         "tags": [
-          "OcpFeedbackApi"
+          "OcpProposalApi"
         ]
       },
       "delete": {
-        "operationId": "OcpFeedbackApi_RemoveProposalV1",
+        "operationId": "OcpProposalApi_RemoveProposalV1",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -243,18 +197,32 @@
           }
         ],
         "tags": [
-          "OcpFeedbackApi"
+          "OcpProposalApi"
         ]
       }
     }
   },
   "definitions": {
-    "apiCreateFeedbackV1Response": {
+    "apiCreateMultiProposalV1Request": {
       "type": "object",
       "properties": {
-        "feedback_id": {
-          "type": "string",
-          "format": "uint64"
+        "proposals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiProposal"
+          }
+        }
+      }
+    },
+    "apiCreateMultiProposalV1Response": {
+      "type": "object",
+      "properties": {
+        "proposals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
+          }
         }
       }
     },
@@ -267,51 +235,11 @@
         }
       }
     },
-    "apiDescribeFeedbackV1Response": {
-      "type": "object",
-      "properties": {
-        "feedback": {
-          "$ref": "#/definitions/apiFeedback"
-        }
-      }
-    },
     "apiDescribeProposalV1Response": {
       "type": "object",
       "properties": {
         "proposal": {
           "$ref": "#/definitions/apiProposal"
-        }
-      }
-    },
-    "apiFeedback": {
-      "type": "object",
-      "properties": {
-        "feedback_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "user_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "classroom_id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "comment": {
-          "type": "string"
-        }
-      },
-      "title": "Feedback messages"
-    },
-    "apiListFeedbacksV1Response": {
-      "type": "object",
-      "properties": {
-        "feedbacks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apiFeedback"
-          }
         }
       }
     },
@@ -345,13 +273,12 @@
           "type": "string",
           "format": "uint64"
         }
-      },
-      "title": "Proposal messages"
-    },
-    "apiRemoveFeedbackV1Response": {
-      "type": "object"
+      }
     },
     "apiRemoveProposalV1Response": {
+      "type": "object"
+    },
+    "apiUpdateProposalV1Response": {
       "type": "object"
     },
     "protobufAny": {

@@ -22,14 +22,14 @@ type producer struct {
 	done   chan void
 }
 
-func New(topic string, prod sarama.AsyncProducer) (*producer, error) {
+func New(topic string, prod sarama.AsyncProducer) *producer {
 
 	return &producer{
 		prod:   prod,
 		topic:  topic,
 		events: make(chan Event),
 		done:   make(chan void),
-	}, nil
+	}
 }
 
 func (p *producer) Init(ctx context.Context) {

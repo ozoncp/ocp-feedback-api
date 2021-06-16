@@ -38,11 +38,8 @@ var _ = Describe("GrpcService", func() {
 		ctx = context.Background()
 		ctx, cancel = context.WithCancel(ctx)
 		asynProdMock = mocks.NewAsyncProducer(controller.T, nil)
-		prod, err := producer.New("proposals", asynProdMock)
+		prod := producer.New("proposals", asynProdMock)
 		p = prod
-		if err != nil {
-			controller.T.Errorf("unable to create sarama mock: %s", err)
-		}
 		prod.Init(ctx)
 		db, sqlmk, _ = sqlmock.New()
 

@@ -93,11 +93,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start Sarama producer:%v")
 	}
-
-	prod, err := producer.New("feedbacks", sarama)
-	if err != nil {
-		log.Fatal().Err(err).Msg(err.Error())
-	}
+	prod := producer.New("feedbacks", sarama)
 	prod.Init(ctx)
 
 	// initialize tracer

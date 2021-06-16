@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -26,9 +27,8 @@ import (
 )
 
 var (
-	brokerList = []string{"127.0.0.1:29092"}
-	grpcPort   int
-	chunks     int
+	grpcPort int
+	chunks   int
 
 	// postgres
 	dbUserName      string
@@ -41,6 +41,9 @@ var (
 
 	// prometheus
 	promAddr string
+
+	// kafka
+	brokerList string
 )
 
 func init() {
@@ -54,6 +57,7 @@ func init() {
 	flag.IntVar(&dbMaxOpenConns, "db_MaxOpenConnections", 15, "Number of total open connections to the database")
 	flag.IntVar(&dbMaxIdleConnts, "db_MaxIdleConnections", 5, "Number of idle connections in the pool")
 	flag.StringVar(&promAddr, "prom-address", ":2112", "The address to listen on for HTTP requests.")
+	flag.StringVar(&brokerList, "broker-address", "127.0.0.1:29092", "List of KAFKA brokers")
 }
 
 func main() {
@@ -89,7 +93,7 @@ func main() {
 	config.Producer.Compression = sarama.CompressionNone
 	config.Producer.Flush.Frequency = time.Second
 
-	sarama, err := sarama.NewAsyncProducer(brokerList, config)
+	sarama, err := sarama.NewAsyncProducer(strings.Split(brokerList, ","), config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start Sarama producer:%v")
 	}

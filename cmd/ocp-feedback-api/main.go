@@ -31,17 +31,11 @@ var (
 	chunks   int
 
 	// postgres
-	dbUserName     string
-	dbPassword     string
-	dbHost         string
-	dbPort         string
-	dbName         string
+	dbConnString   string
 	dbMaxOpenConns int
 	dbMaxIdleConns int
-
 	// prometheus
 	promAddr string
-
 	// kafka
 	brokerList string
 )
@@ -49,14 +43,10 @@ var (
 func init() {
 	flag.IntVar(&grpcPort, "port", 10000, "GRPC server port")
 	flag.IntVar(&chunks, "chunks", 2, "Number of chunks to split into")
-	flag.StringVar(&dbUserName, "db_user", "postgres", "Database user")
-	flag.StringVar(&dbPassword, "db_password", "postgres", "Database password")
-	flag.StringVar(&dbHost, "db_host", "localhost", "Database address")
-	flag.StringVar(&dbPort, "db_port", "5432", "Database port")
-	flag.StringVar(&dbName, "db_name", "postgres", "Database name")
-	flag.IntVar(&dbMaxOpenConns, "db_MaxOpenConnections", 15, "Number of total open connections to the database")
-	flag.IntVar(&dbMaxIdleConns, "db_MaxIdleConnections", 5, "Number of idle connections in the pool")
-	flag.StringVar(&promAddr, "prom-address", ":2112", "The address to listen on for HTTP requests.")
+	flag.StringVar(&dbConnString, "db-conn", "postgres://postgres:postgres@localhost/postgres", "Database connection string")
+	flag.IntVar(&dbMaxOpenConns, "db-MaxOpenConnections", 15, "Number of total open connections to the database")
+	flag.IntVar(&dbMaxIdleConns, "db-MaxIdleConnections", 5, "Number of idle connections in the pool")
+	flag.StringVar(&promAddr, "prometheus-address", ":2112", "The address to listen on for HTTP requests.")
 	flag.StringVar(&brokerList, "broker-address", "127.0.0.1:29092", "List of KAFKA brokers")
 }
 
@@ -64,16 +54,7 @@ func main() {
 	flag.Parse()
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	connString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v",
-		dbUserName,
-		dbPassword,
-		dbHost,
-		dbPort,
-		dbName,
-	)
-	log.Info().Msgf("Connecting to postgres %v...", connString)
-
-	db, err := sqlx.Connect("pgx", connString)
+	db, err := sqlx.Connect("pgx", dbConnString)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to the database")
 	}
@@ -81,7 +62,8 @@ func main() {
 
 	db.SetMaxOpenConns(dbMaxOpenConns)
 	db.SetMaxIdleConns(dbMaxIdleConns)
-	log.Info().Msg("Connected to postgres")
+
+	log.Info().Msg("Connected to the database")
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -94,11 +76,11 @@ func main() {
 	config.Producer.Compression = sarama.CompressionNone
 	config.Producer.Flush.Frequency = time.Second
 
-	sarama, err := sarama.NewAsyncProducer(strings.Split(brokerList, ","), config)
+	asyncProducer, err := sarama.NewAsyncProducer(strings.Split(brokerList, ","), config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start Sarama producer:%v")
 	}
-	prod := producer.New("feedbacks", sarama)
+	prod := producer.New("feedbacks", asyncProducer)
 	prod.Init(ctx)
 
 	// initialize tracer

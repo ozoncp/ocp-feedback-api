@@ -85,6 +85,7 @@ func main() {
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
+	group, ctx := errgroup.WithContext(ctx)
 	defer cancel()
 
 	// create asynchronous KAFKA producer
@@ -122,7 +123,6 @@ func main() {
 		),
 	)
 
-	var group errgroup.Group
 	group.Go(func() error {
 		log.Info().Msg("Serving grpc requests...")
 		return grpcServer.Serve(lis)

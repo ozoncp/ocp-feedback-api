@@ -6,6 +6,10 @@ import (
 
 type EventType int
 
+var (
+	events = [...]string{"Create", "Update", "Remove"}
+)
+
 const (
 	Create EventType = iota
 	Update
@@ -13,7 +17,7 @@ const (
 )
 
 func (e EventType) String() string {
-	return [...]string{"Create", "Update", "Remove"}[e]
+	return events[e]
 }
 
 type Event struct {

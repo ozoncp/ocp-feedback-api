@@ -16,6 +16,7 @@ import (
 	"github.com/ozoncp/ocp-feedback-api/internal/prommetrics"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
 	proposal_service "github.com/ozoncp/ocp-feedback-api/internal/server/proposal_grpc"
+	"github.com/ozoncp/ocp-feedback-api/internal/tracer"
 	pr "github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
@@ -84,9 +85,9 @@ func main() {
 
 	// create asynchronous KAFKA producer
 	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
-	config.Producer.Compression = sarama.CompressionSnappy   // Compress messages
-	config.Producer.Flush.Frequency = 500 * time.Millisecond // Flush batches every 500ms
+	config.Producer.RequiredAcks = sarama.WaitForLocal // Only wait for the leader to ack
+	config.Producer.Compression = sarama.CompressionNone
+	config.Producer.Flush.Frequency = time.Second
 
 	sarama, err := sarama.NewAsyncProducer(brokerList, config)
 	if err != nil {
@@ -97,6 +98,10 @@ func main() {
 		log.Fatal().Err(err).Msg(err.Error())
 	}
 	prod.Init(ctx)
+
+	// initialize tracer
+	closer := tracer.Init("ocp-proposal-api")
+	defer closer.Close()
 
 	// create GRPC service
 	grpcEndpoint := fmt.Sprintf("localhost:%d", grpcPort)

@@ -3,6 +3,8 @@ package proposal_grpc
 import (
 	"context"
 
+	"github.com/opentracing/opentracing-go"
+	oplog "github.com/opentracing/opentracing-go/log"
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 	"github.com/ozoncp/ocp-feedback-api/internal/producer"
 	"github.com/ozoncp/ocp-feedback-api/internal/prommetrics"
@@ -78,6 +80,9 @@ func (s *ProposalService) CreateMultiProposalV1(
 			err.Error())
 	}
 
+	rootspan, spanctx := opentracing.StartSpanFromContext(ctx, "CreateMultiProposalV1")
+	defer rootspan.Finish()
+
 	var entities []models.Entity
 
 	for i := 0; i < len(req.Proposals); i++ {
@@ -88,7 +93,8 @@ func (s *ProposalService) CreateMultiProposalV1(
 		})
 	}
 
-	chunks, err := utils.SplitSlice(entities, len(entities)/s.chunks)
+	chunks, err := utils.SplitSlice(entities, s.chunks)
+
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -99,15 +105,27 @@ func (s *ProposalService) CreateMultiProposalV1(
 	// if transaction fails, only those IDs which have been already added successfully
 	// will be returned to the client
 	for i := 0; i < len(chunks); i++ {
+		span, _ := opentracing.StartSpanFromContext(spanctx, "batch")
 		ids, err := s.proposalRepo.AddEntities(ctx, chunks[i]...)
 		if err != nil {
+			span.LogFields(
+				oplog.Int32("batch size", 0),
+			)
+			span.Finish()
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
+		var batchSize int32
+
 		res.Proposals = append(res.Proposals, ids...)
-		for i := 0; i < len(ids); i++ {
-			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[i]))
+		for j := 0; j < len(ids); j++ {
+			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[j]))
 			s.promMetrics.IncCreate()
+			batchSize += int32(chunks[i][j].(*models.Proposal).Size()) // dumb conversion
 		}
+		span.LogFields(
+			oplog.Int32("batch size", batchSize),
+		)
+		span.Finish()
 	}
 	return res, nil
 

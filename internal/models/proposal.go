@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"unsafe"
 )
 
 type Proposal struct {
@@ -17,4 +18,11 @@ func (f *Proposal) ObjectId() uint64 {
 
 func (p *Proposal) String() string {
 	return fmt.Sprintf("id: %v, user: %v, lesson: %v, document: %v", p.Id, p.UserId, p.LessonId, p.DocumentId)
+}
+
+func (p *Proposal) Size() uint64 {
+	return uint64(unsafe.Sizeof(p.Id) +
+		unsafe.Sizeof(p.UserId) +
+		unsafe.Sizeof(p.LessonId) +
+		unsafe.Sizeof(p.DocumentId))
 }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"unsafe"
 )
 
 type Feedback struct {
@@ -18,4 +19,12 @@ func (f *Feedback) ObjectId() uint64 {
 func (f *Feedback) String() string {
 	return fmt.Sprintf("id: %v, user: %v, classroom: %v, comment: %v",
 		f.Id, f.UserId, f.ClassroomId, f.Comment)
+}
+
+func (f *Feedback) Size() uint64 {
+	sz := unsafe.Sizeof(f.Id) +
+		unsafe.Sizeof(f.ClassroomId) +
+		unsafe.Sizeof(f.UserId) +
+		(unsafe.Sizeof(f.Comment))
+	return uint64(len(f.Comment)) + uint64(sz)
 }

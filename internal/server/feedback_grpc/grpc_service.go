@@ -3,6 +3,8 @@ package feedback_grpc
 import (
 	"context"
 
+	"github.com/opentracing/opentracing-go"
+	oplog "github.com/opentracing/opentracing-go/log"
 	"github.com/ozoncp/ocp-feedback-api/internal/models"
 	"github.com/ozoncp/ocp-feedback-api/internal/producer"
 	"github.com/ozoncp/ocp-feedback-api/internal/prommetrics"
@@ -75,6 +77,8 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 			"request is invalid: %v",
 			err.Error())
 	}
+	rootspan, spanctx := opentracing.StartSpanFromContext(ctx, "CreateMultiFeedbackV1")
+	defer rootspan.Finish()
 
 	var entities []models.Entity
 
@@ -86,7 +90,7 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 		})
 	}
 
-	chunks, err := utils.SplitSlice(entities, len(entities)/s.chunks)
+	chunks, err := utils.SplitSlice(entities, s.chunks)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -97,16 +101,27 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 	// if transaction fails, only those IDs which have been already added successfully
 	// will be returned to the client
 	for i := 0; i < len(chunks); i++ {
+		span, _ := opentracing.StartSpanFromContext(spanctx, "batch")
 		ids, err := s.feedbackRepo.AddEntities(ctx, chunks[i]...)
 		if err != nil {
+			span.LogFields(
+				oplog.Int32("batch size", 0),
+			)
+			span.Finish()
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
-		res.FeedbackId = append(res.FeedbackId, ids...)
-		for i := 0; i < len(ids); i++ {
-			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[i]))
-			s.promMetrics.IncCreate()
-		}
 
+		var batchSize int32
+		res.FeedbackId = append(res.FeedbackId, ids...)
+		for j := 0; j < len(ids); j++ {
+			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[j]))
+			s.promMetrics.IncCreate()
+			batchSize += int32(chunks[i][j].(*models.Feedback).Size()) // dumb conversion
+		}
+		span.LogFields(
+			oplog.Int32("batch size", batchSize),
+		)
+		span.Finish()
 	}
 	return res, nil
 

@@ -288,7 +288,7 @@ var _ = Describe("GrpcService", func() {
 		When("ListFeedback is called", func() {
 			It("should process a message", func() {
 				repo := repo.NewFeedbackRepo(sqlx.NewDb(db, ""))
-				grpcService = feedback_grpc.New(repo, p, mockProm, 1)
+				grpcService = feedback_grpc.New(repo, p, mockProm, 2)
 
 				asynProdMock.ExpectInputAndSucceed()
 				asynProdMock.ExpectInputAndSucceed()

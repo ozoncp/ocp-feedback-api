@@ -51,12 +51,7 @@ func (p *producer) Init(ctx context.Context) {
 					log.Println("Failed to marshal event:", err)
 					return
 				}
-				select {
-				case p.prod.Input() <- &sarama.ProducerMessage{Topic: p.topic, Value: sarama.StringEncoder(bytes)}:
-				default:
-					log.Println("Failed to send message, broker is down")
-					//TODO: write message to disk to read and re-transmit later
-				}
+				p.prod.Input() <- &sarama.ProducerMessage{Topic: p.topic, Value: sarama.StringEncoder(bytes)}
 			case <-ctx.Done():
 				p.done <- void{}
 				return

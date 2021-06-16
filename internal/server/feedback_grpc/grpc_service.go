@@ -44,6 +44,7 @@ func (s *FeedbackService) CreateFeedbackV1(
 ) (*fb.CreateFeedbackV1Response, error) {
 
 	log.Info().Msgf("Handle request for CreateFeedbackV1: %v", req)
+
 	if err := req.Validate(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument,
 			"request is invalid: %v",
@@ -55,12 +56,15 @@ func (s *FeedbackService) CreateFeedbackV1(
 		ClassroomId: req.Feedback.ClassroomId,
 		Comment:     req.Feedback.Comment,
 	}
+
 	ids, err := s.feedbackRepo.AddEntities(ctx, f)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
+
 	s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[0]))
 	s.promMetrics.IncCreate()
+
 	return &fb.CreateFeedbackV1Response{FeedbackId: ids[0]}, nil
 }
 
@@ -77,11 +81,11 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 			"request is invalid: %v",
 			err.Error())
 	}
+
 	rootspan, spanctx := opentracing.StartSpanFromContext(ctx, "CreateMultiFeedbackV1")
 	defer rootspan.Finish()
 
 	var entities []models.Entity
-
 	for i := 0; i < len(req.Feedbacks); i++ {
 		entities = append(entities, &models.Feedback{
 			UserId:      req.Feedbacks[i].UserId,
@@ -102,29 +106,24 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 	// will be returned to the client
 	for i := 0; i < len(chunks); i++ {
 		span, _ := opentracing.StartSpanFromContext(spanctx, "batch")
-		ids, err := s.feedbackRepo.AddEntities(ctx, chunks[i]...)
+
+		addedIds, err := s.feedbackRepo.AddEntities(ctx, chunks[i]...)
 		if err != nil {
-			span.LogFields(
-				oplog.Int32("batch size", 0),
-			)
+			span.LogFields(oplog.Uint64("batch size", 0))
 			span.Finish()
 			return res, status.Errorf(codes.Internal, "bulk insertion failed: %v", err)
 		}
+		res.FeedbackId = append(res.FeedbackId, addedIds...)
 
-		var batchSize int32
-		res.FeedbackId = append(res.FeedbackId, ids...)
-		for j := 0; j < len(ids); j++ {
-			s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[j]))
-			s.promMetrics.IncCreate()
-			batchSize += int32(chunks[i][j].(*models.Feedback).Size()) // dumb conversion
-		}
-		span.LogFields(
-			oplog.Int32("batch size", batchSize),
-		)
+		span.LogFields(oplog.Uint64("batch size", calculateSize(chunks[i]...)))
 		span.Finish()
+
+		for _, id := range addedIds {
+			s.prod.SendEvent(producer.CreateEvent(producer.Create, id))
+			s.promMetrics.IncCreate()
+		}
 	}
 	return res, nil
-
 }
 
 // RemoveFeedbackV1 removes a feedback
@@ -138,14 +137,17 @@ func (s *FeedbackService) RemoveFeedbackV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+
 	err := s.feedbackRepo.RemoveEntity(ctx, req.FeedbackId)
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+
 	s.prod.SendEvent(producer.CreateEvent(producer.Remove, req.FeedbackId))
 	s.promMetrics.IncRemove()
+
 	return &fb.RemoveFeedbackV1Response{}, nil
 }
 
@@ -160,12 +162,14 @@ func (s *FeedbackService) DescribeFeedbackV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+
 	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.FeedbackId)
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+
 	f := entity.(*models.Feedback)
 	respFeedback := fb.Feedback{
 		FeedbackId:  f.Id,
@@ -173,6 +177,7 @@ func (s *FeedbackService) DescribeFeedbackV1(
 		ClassroomId: f.ClassroomId,
 		Comment:     f.Comment,
 	}
+
 	return &fb.DescribeFeedbackV1Response{Feedback: &respFeedback}, nil
 }
 
@@ -192,8 +197,8 @@ func (s *FeedbackService) ListFeedbacksV1(
 	if err != nil {
 		return nil, status.Errorf(codes.OutOfRange, "unable to list feedbacks: %v", err)
 	}
-	var feedbacks []*fb.Feedback
 
+	var feedbacks []*fb.Feedback
 	for i := 0; i < len(entities); i++ {
 		f := entities[i].(*models.Feedback)
 		feedbacks = append(feedbacks, &fb.Feedback{
@@ -203,6 +208,7 @@ func (s *FeedbackService) ListFeedbacksV1(
 			Comment:     f.Comment,
 		})
 	}
+
 	return &fb.ListFeedbacksV1Response{Feedbacks: feedbacks}, nil
 }
 
@@ -211,6 +217,7 @@ func (s *FeedbackService) UpdateFeedbackV1(
 	ctx context.Context,
 	req *fb.UpdateFeedbackV1Request,
 ) (*fb.UpdateFeedbackV1Response, error) {
+
 	log.Info().Msgf("Handle request for UpdateFeedbackV1: %v", req)
 
 	if err := req.Validate(); err != nil {
@@ -230,7 +237,17 @@ func (s *FeedbackService) UpdateFeedbackV1(
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+
 	s.prod.SendEvent(producer.CreateEvent(producer.Update, req.Feedback.FeedbackId))
 	s.promMetrics.IncUpdate()
+
 	return &fb.UpdateFeedbackV1Response{}, nil
+}
+
+func calculateSize(entities ...models.Entity) uint64 {
+	var batchSize uint64
+	for i := 0; i < len(entities); i++ {
+		batchSize += entities[i].(*models.Feedback).Size()
+	}
+	return batchSize
 }

@@ -25,6 +25,6 @@ func (f *Feedback) Size() uint64 {
 	sz := unsafe.Sizeof(f.Id) +
 		unsafe.Sizeof(f.ClassroomId) +
 		unsafe.Sizeof(f.UserId) +
-		(unsafe.Sizeof(f.Comment))
+		unsafe.Sizeof(f.Comment)
 	return uint64(len(f.Comment)) + uint64(sz)
 }

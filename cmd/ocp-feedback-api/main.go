@@ -7,12 +7,12 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
+	cfg "github.com/ozoncp/ocp-feedback-api/internal/config"
 	"github.com/ozoncp/ocp-feedback-api/internal/producer"
 	"github.com/ozoncp/ocp-feedback-api/internal/prommetrics"
 	"github.com/ozoncp/ocp-feedback-api/internal/repo"
@@ -27,41 +27,31 @@ import (
 )
 
 var (
-	grpcPort int
-	chunks   int
-
-	// postgres
-	dbConnString   string
-	dbMaxOpenConns int
-	dbMaxIdleConns int
-	// prometheus
-	promAddr string
-	// kafka
-	brokerList string
+	configName string
+	configPath string
 )
 
 func init() {
-	flag.IntVar(&grpcPort, "port", 10000, "GRPC server port")
-	flag.IntVar(&chunks, "chunks", 2, "Number of chunks to split into")
-	flag.StringVar(&dbConnString, "db-conn", "postgres://postgres:postgres@localhost/postgres", "Database connection string")
-	flag.IntVar(&dbMaxOpenConns, "db-MaxOpenConnections", 15, "Number of total open connections to the database")
-	flag.IntVar(&dbMaxIdleConns, "db-MaxIdleConnections", 5, "Number of idle connections in the pool")
-	flag.StringVar(&promAddr, "prometheus-address", ":2112", "The address to listen on for HTTP requests.")
-	flag.StringVar(&brokerList, "broker-address", "127.0.0.1:29092", "List of KAFKA brokers")
+	flag.StringVar(&configName, "config_name", "config", "Name of a .yml config file")
+	flag.StringVar(&configPath, "config_path", ".", "Config file path")
 }
 
 func main() {
 	flag.Parse()
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	cfg, err := cfg.Read(configName, configPath)
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to read config file")
+	}
 
-	db, err := sqlx.Connect("pgx", dbConnString)
+	db, err := sqlx.Connect("pgx", cfg.Postgres.ConnString)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to the database")
 	}
 	defer db.Close()
 
-	db.SetMaxOpenConns(dbMaxOpenConns)
-	db.SetMaxIdleConns(dbMaxIdleConns)
+	db.SetMaxOpenConns(cfg.Postgres.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.Postgres.MaxIdleConns)
 
 	log.Info().Msg("Connected to the database")
 
@@ -71,14 +61,14 @@ func main() {
 	defer cancel()
 
 	// create asynchronous KAFKA producer
-	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForLocal // Only wait for the leader to ack
-	config.Producer.Compression = sarama.CompressionNone
-	config.Producer.Flush.Frequency = time.Second
+	saramaCfg := sarama.NewConfig()
+	saramaCfg.Producer.RequiredAcks = sarama.WaitForLocal // Only wait for the leader to ack
+	saramaCfg.Producer.Compression = sarama.CompressionNone
+	saramaCfg.Producer.Flush.Frequency = time.Second
 
-	asyncProducer, err := sarama.NewAsyncProducer(strings.Split(brokerList, ","), config)
+	asyncProducer, err := sarama.NewAsyncProducer(cfg.Kafka.Brokers, saramaCfg)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to start Sarama producer:%v")
+		log.Fatal().Err(err).Msg("failed to start Sarama producer")
 	}
 	prod := producer.New("feedbacks", asyncProducer)
 	prod.Init(ctx)
@@ -88,7 +78,7 @@ func main() {
 	defer closer.Close()
 
 	// create GRPC service
-	grpcEndpoint := fmt.Sprintf("localhost:%d", grpcPort)
+	grpcEndpoint := fmt.Sprintf("%v:%v", cfg.GRPC.Host, cfg.GRPC.Port)
 	lis, err := net.Listen("tcp", grpcEndpoint)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Cannot start feedback grpc server at %v", grpcEndpoint)
@@ -101,7 +91,7 @@ func main() {
 			repo.NewFeedbackRepo(db),
 			prod,
 			prommetrics.New("feedback"),
-			chunks,
+			cfg.General.Chunks,
 		),
 	)
 
@@ -111,13 +101,14 @@ func main() {
 	})
 
 	group.Go(func() error {
-		log.Info().Msgf("Serving Prometheus metrics at %v", promAddr)
-		http.Handle("/metrics", promhttp.Handler())
-		return http.ListenAndServe(promAddr, nil)
+		log.Info().Msgf("Serving Prometheus metrics at %v", cfg.Prometheus.URI)
+		http.Handle(cfg.Prometheus.URI, promhttp.Handler())
+		addr := fmt.Sprintf("%v:%v", cfg.Prometheus.Host, cfg.Prometheus.Port)
+		return http.ListenAndServe(addr, nil)
 	})
 
 	if err = group.Wait(); err != nil {
-		log.Error().Msgf("Terminated abnormally: %v", err)
+		log.Fatal().Msgf("Terminated abnormally: %v", err)
 	}
-	log.Error().Msgf("Terminated normally: %v", err)
+	log.Info().Msgf("Terminated normally: %v", err)
 }

@@ -18,23 +18,23 @@ import (
 
 type ProposalService struct {
 	pr.UnimplementedOcpProposalApiServer
-	proposalRepo repo.Repo
-	prod         producer.Producer
-	promMetrics  prommetrics.PromMetrics
-	chunks       int
+	repo   repo.Repo
+	prod   producer.Producer
+	prom   prommetrics.PromMetrics
+	chunks int
 }
 
 // New returns a new Proposal GRPC server
-func New(pRepo repo.Repo,
-	producer producer.Producer,
-	promMetrics prommetrics.PromMetrics,
+func New(repo repo.Repo,
+	prod producer.Producer,
+	prom prommetrics.PromMetrics,
 	chunks int,
 ) *ProposalService {
 	return &ProposalService{
-		proposalRepo: pRepo,
-		chunks:       chunks,
-		promMetrics:  promMetrics,
-		prod:         producer,
+		repo:   repo,
+		chunks: chunks,
+		prom:   prom,
+		prod:   prod,
 	}
 }
 
@@ -58,13 +58,13 @@ func (s *ProposalService) CreateProposalV1(
 		DocumentId: req.Proposal.DocumentId,
 	}
 
-	ids, err := s.proposalRepo.AddEntities(ctx, p)
+	ids, err := s.repo.AddEntities(ctx, p)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
 
 	s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[0]))
-	s.promMetrics.IncCreate()
+	s.prom.IncCreate()
 
 	return &pr.CreateProposalV1Response{ProposalId: ids[0]}, nil
 }
@@ -108,7 +108,7 @@ func (s *ProposalService) CreateMultiProposalV1(
 	for i := 0; i < len(chunks); i++ {
 		span, _ := opentracing.StartSpanFromContext(spanctx, "batch")
 
-		addedIds, err := s.proposalRepo.AddEntities(ctx, chunks[i]...)
+		addedIds, err := s.repo.AddEntities(ctx, chunks[i]...)
 		if err != nil {
 			span.LogFields(oplog.Uint64("batch size", 0))
 			span.Finish()
@@ -121,7 +121,7 @@ func (s *ProposalService) CreateMultiProposalV1(
 
 		for _, id := range addedIds {
 			s.prod.SendEvent(producer.CreateEvent(producer.Create, id))
-			s.promMetrics.IncCreate()
+			s.prom.IncCreate()
 		}
 	}
 	return res, nil
@@ -139,7 +139,7 @@ func (s *ProposalService) RemoveProposalV1(
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	err := s.proposalRepo.RemoveEntity(ctx, req.ProposalId)
+	err := s.repo.RemoveEntity(ctx, req.ProposalId)
 
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
@@ -148,7 +148,7 @@ func (s *ProposalService) RemoveProposalV1(
 	}
 
 	s.prod.SendEvent(producer.CreateEvent(producer.Remove, req.ProposalId))
-	s.promMetrics.IncRemove()
+	s.prom.IncRemove()
 
 	return &pr.RemoveProposalV1Response{}, nil
 }
@@ -165,7 +165,7 @@ func (s *ProposalService) DescribeProposalV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	entity, err := s.proposalRepo.DescribeEntity(ctx, req.ProposalId)
+	entity, err := s.repo.DescribeEntity(ctx, req.ProposalId)
 
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
@@ -196,7 +196,7 @@ func (s *ProposalService) ListProposalsV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	entities, err := s.proposalRepo.ListEntities(ctx, req.Limit, req.Offset)
+	entities, err := s.repo.ListEntities(ctx, req.Limit, req.Offset)
 	if err != nil {
 		return nil, status.Errorf(codes.OutOfRange, "unable to list proposals: %v", err)
 	}
@@ -233,7 +233,7 @@ func (s *ProposalService) UpdateProposalV1(
 		DocumentId: req.Proposal.DocumentId,
 	}
 
-	err := s.proposalRepo.UpdateEntity(ctx, p)
+	err := s.repo.UpdateEntity(ctx, p)
 
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
@@ -242,7 +242,7 @@ func (s *ProposalService) UpdateProposalV1(
 	}
 
 	s.prod.SendEvent(producer.CreateEvent(producer.Update, req.Proposal.ProposalId))
-	s.promMetrics.IncUpdate()
+	s.prom.IncUpdate()
 
 	return &pr.UpdateProposalV1Response{}, nil
 }

@@ -18,23 +18,23 @@ import (
 
 type FeedbackService struct {
 	fb.UnimplementedOcpFeedbackApiServer
-	feedbackRepo repo.Repo
-	prod         producer.Producer
-	promMetrics  prommetrics.PromMetrics
-	chunks       int
+	repo   repo.Repo
+	prod   producer.Producer
+	prom   prommetrics.PromMetrics
+	chunks int
 }
 
 // New returns a new Feedback GRPC service
-func New(fRepo repo.Repo,
-	producer producer.Producer,
-	promMetrics prommetrics.PromMetrics,
+func New(repo repo.Repo,
+	prod producer.Producer,
+	prom prommetrics.PromMetrics,
 	chunks int,
 ) *FeedbackService {
 	return &FeedbackService{
-		feedbackRepo: fRepo,
-		prod:         producer,
-		promMetrics:  promMetrics,
-		chunks:       chunks}
+		repo:   repo,
+		prod:   prod,
+		prom:   prom,
+		chunks: chunks}
 }
 
 // CreateFeedbackV1 saves a new feedback
@@ -57,13 +57,13 @@ func (s *FeedbackService) CreateFeedbackV1(
 		Comment:     req.Feedback.Comment,
 	}
 
-	ids, err := s.feedbackRepo.AddEntities(ctx, f)
+	ids, err := s.repo.AddEntities(ctx, f)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "insertion failed: %v", err)
 	}
-
+	// assume that one-element slice is guaranteed to be returned
 	s.prod.SendEvent(producer.CreateEvent(producer.Create, ids[0]))
-	s.promMetrics.IncCreate()
+	s.prom.IncCreate()
 
 	return &fb.CreateFeedbackV1Response{FeedbackId: ids[0]}, nil
 }
@@ -107,7 +107,7 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 	for i := 0; i < len(chunks); i++ {
 		span, _ := opentracing.StartSpanFromContext(spanctx, "batch")
 
-		addedIds, err := s.feedbackRepo.AddEntities(ctx, chunks[i]...)
+		addedIds, err := s.repo.AddEntities(ctx, chunks[i]...)
 		if err != nil {
 			span.LogFields(oplog.Uint64("batch size", 0))
 			span.Finish()
@@ -120,7 +120,7 @@ func (s *FeedbackService) CreateMultiFeedbackV1(
 
 		for _, id := range addedIds {
 			s.prod.SendEvent(producer.CreateEvent(producer.Create, id))
-			s.promMetrics.IncCreate()
+			s.prom.IncCreate()
 		}
 	}
 	return res, nil
@@ -138,7 +138,7 @@ func (s *FeedbackService) RemoveFeedbackV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := s.feedbackRepo.RemoveEntity(ctx, req.FeedbackId)
+	err := s.repo.RemoveEntity(ctx, req.FeedbackId)
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
@@ -146,7 +146,7 @@ func (s *FeedbackService) RemoveFeedbackV1(
 	}
 
 	s.prod.SendEvent(producer.CreateEvent(producer.Remove, req.FeedbackId))
-	s.promMetrics.IncRemove()
+	s.prom.IncRemove()
 
 	return &fb.RemoveFeedbackV1Response{}, nil
 }
@@ -163,7 +163,7 @@ func (s *FeedbackService) DescribeFeedbackV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	entity, err := s.feedbackRepo.DescribeEntity(ctx, req.FeedbackId)
+	entity, err := s.repo.DescribeEntity(ctx, req.FeedbackId)
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
@@ -193,7 +193,7 @@ func (s *FeedbackService) ListFeedbacksV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	entities, err := s.feedbackRepo.ListEntities(ctx, req.Limit, req.Offset)
+	entities, err := s.repo.ListEntities(ctx, req.Limit, req.Offset)
 	if err != nil {
 		return nil, status.Errorf(codes.OutOfRange, "unable to list feedbacks: %v", err)
 	}
@@ -231,7 +231,7 @@ func (s *FeedbackService) UpdateFeedbackV1(
 		Comment:     req.Feedback.Comment,
 	}
 
-	err := s.feedbackRepo.UpdateEntity(ctx, f)
+	err := s.repo.UpdateEntity(ctx, f)
 	if err == repo.ErrNotFound {
 		return nil, status.Error(codes.NotFound, err.Error())
 	} else if err != nil {
@@ -239,7 +239,7 @@ func (s *FeedbackService) UpdateFeedbackV1(
 	}
 
 	s.prod.SendEvent(producer.CreateEvent(producer.Update, req.Feedback.FeedbackId))
-	s.promMetrics.IncUpdate()
+	s.prom.IncUpdate()
 
 	return &fb.UpdateFeedbackV1Response{}, nil
 }

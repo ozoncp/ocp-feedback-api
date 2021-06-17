@@ -3,7 +3,8 @@ package producer
 import (
 	"context"
 	"encoding/json"
-	"log"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/Shopify/sarama"
 )
@@ -36,19 +37,18 @@ func (p *producer) Init(ctx context.Context) {
 
 	go func() {
 		for err := range p.prod.Errors() {
-			log.Println("Failed to write entry:", err)
 			//TODO: write message to disk to read and re-transmit later
+			log.Err(err).Msg("Failed to write entry")
 		}
 	}()
 	go func() {
 		defer p.prod.Close()
 		for {
-
 			select {
 			case event := <-p.events:
 				bytes, err := json.Marshal(event)
 				if err != nil {
-					log.Println("Failed to marshal event:", err)
+					log.Err(err).Msg("Failed to marshal event:")
 					return
 				}
 				p.prod.Input() <- &sarama.ProducerMessage{Topic: p.topic, Value: sarama.StringEncoder(bytes)}

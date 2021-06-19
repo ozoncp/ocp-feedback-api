@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -45,23 +46,63 @@ func main() {
 		log.Fatal().Err(err).Msg("unable to read config file")
 	}
 
+	db := createDatabase(cfg)
+	defer db.Close()
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt)
+
+	var group errgroup.Group
+	ctx, cancel := context.WithCancel(context.Background())
+
+	prod := createKafkaProducer(ctx, cfg)
+
+	// initialize tracer
+	closer := tracer.Init("ocp-feedback-api")
+	defer closer.Close()
+
+	lis, grpcServer := createGRPCService(cfg, db, prod)
+	metricsServer := createMetricsServer(cfg)
+
+	go func() {
+		<-signals
+		if err := metricsServer.Shutdown(ctx); err != nil {
+			log.Printf("shutdown error: %v\n", err)
+		}
+		grpcServer.GracefulStop()
+		cancel()
+	}()
+
+	group.Go(func() error {
+		log.Info().Msg("Serving grpc requests...")
+		return grpcServer.Serve(lis)
+	})
+
+	group.Go(func() error {
+		log.Info().Msgf("Serving Prometheus metrics at %v", cfg.Prometheus.URI)
+		return metricsServer.ListenAndServe()
+	})
+
+	if err = group.Wait(); err != http.ErrServerClosed {
+		log.Fatal().Msgf("Terminated abnormally: %v", err)
+	}
+	signals <- os.Interrupt
+	log.Info().Msgf("Terminated normally")
+
+}
+
+func createDatabase(cfg *cfg.Config) *sqlx.DB {
 	db, err := sqlx.Connect("pgx", cfg.Postgres.ConnString)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to the database")
 	}
-	defer db.Close()
-
 	db.SetMaxOpenConns(cfg.Postgres.MaxOpenConns)
 	db.SetMaxIdleConns(cfg.Postgres.MaxIdleConns)
-
 	log.Info().Msg("Connected to the database")
+	return db
+}
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	group, ctx := errgroup.WithContext(ctx)
-	defer cancel()
-
-	// create asynchronous KAFKA producer
+func createKafkaProducer(ctx context.Context, cfg *cfg.Config) producer.Producer {
 	saramaCfg := sarama.NewConfig()
 	saramaCfg.Producer.RequiredAcks = sarama.WaitForLocal // Only wait for the leader to ack
 	saramaCfg.Producer.Compression = sarama.CompressionNone
@@ -73,12 +114,11 @@ func main() {
 	}
 	prod := producer.New("feedbacks", asyncProducer)
 	prod.Init(ctx)
+	return prod
+}
 
-	// initialize tracer
-	closer := tracer.Init("ocp-feedback-api")
-	defer closer.Close()
+func createGRPCService(cfg *cfg.Config, db *sqlx.DB, prod producer.Producer) (net.Listener, *grpc.Server) {
 
-	// create GRPC service
 	grpcEndpoint := fmt.Sprintf("%v:%v", cfg.GRPC.Host, cfg.GRPC.Port)
 	lis, err := net.Listen("tcp", grpcEndpoint)
 	if err != nil {
@@ -95,21 +135,17 @@ func main() {
 			cfg.General.Chunks,
 		),
 	)
+	return lis, grpcServer
+}
 
-	group.Go(func() error {
-		log.Info().Msg("Serving grpc requests...")
-		return grpcServer.Serve(lis)
-	})
+func createMetricsServer(cfg *cfg.Config) *http.Server {
+	mux := http.NewServeMux()
+	mux.Handle(cfg.Prometheus.URI, promhttp.Handler())
+	addr := fmt.Sprintf("%v:%v", cfg.Prometheus.Host, cfg.Prometheus.Port)
 
-	group.Go(func() error {
-		log.Info().Msgf("Serving Prometheus metrics at %v", cfg.Prometheus.URI)
-		http.Handle(cfg.Prometheus.URI, promhttp.Handler())
-		addr := fmt.Sprintf("%v:%v", cfg.Prometheus.Host, cfg.Prometheus.Port)
-		return http.ListenAndServe(addr, nil)
-	})
-
-	if err = group.Wait(); err != nil {
-		log.Fatal().Msgf("Terminated abnormally: %v", err)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: mux,
 	}
-	log.Info().Msgf("Terminated normally: %v", err)
+	return srv
 }

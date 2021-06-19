@@ -34,11 +34,12 @@ var (
 func init() {
 	flag.StringVar(&configName, "config_name", "config", "Name of a .yml config file")
 	flag.StringVar(&configPath, "config_path", ".", "Config file path")
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
 func main() {
 	flag.Parse()
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	cfg, err := cfg.Read(configName, configPath)
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to read config file")

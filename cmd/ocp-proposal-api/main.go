@@ -34,6 +34,8 @@ var (
 func init() {
 	flag.StringVar(&configName, "config_name", "config", "Name of a .yml config file")
 	flag.StringVar(&configPath, "config_path", ".", "Config file path")
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
 func main() {

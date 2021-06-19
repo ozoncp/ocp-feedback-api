@@ -1,4 +1,4 @@
-# Ozon Code Platform Presentation Service
+# Ozon Code Platform Feedback Service
 
 ## Feedback GRPC API
 

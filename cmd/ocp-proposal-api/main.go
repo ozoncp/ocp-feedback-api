@@ -86,7 +86,6 @@ func main() {
 	if err = group.Wait(); err != http.ErrServerClosed {
 		log.Fatal().Msgf("Terminated abnormally: %v", err)
 	}
-	signals <- os.Interrupt
 	log.Info().Msgf("Terminated normally")
 }
 

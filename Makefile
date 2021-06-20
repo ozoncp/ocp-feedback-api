@@ -96,3 +96,11 @@ test-coverage:
 clean:
 		rm cover.out
 		rm -rf bin		
+
+.PHONY: feedback_server
+feedback_server:
+		go run cmd/ocp-feedback-api/main.go -config_name=feedback_cfg -config_path=.
+
+.PHONY: proposal_server
+proposal_server:
+		go run cmd/ocp-proposal-api/main.go -config_name=proposal_cfg -config_path=.

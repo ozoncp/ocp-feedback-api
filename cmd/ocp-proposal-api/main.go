@@ -72,6 +72,7 @@ func main() {
 	}
 
 	go func() {
+		defer cancel()
 		<-signals
 		if err := metricsServer.Shutdown(ctx); err != nil {
 			log.Printf("shutdown error: %v\n", err)

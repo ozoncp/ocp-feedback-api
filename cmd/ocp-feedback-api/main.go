@@ -57,7 +57,6 @@ func main() {
 
 	var group errgroup.Group
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	prod := createKafkaProducer(ctx, cfg)
 
@@ -73,6 +72,7 @@ func main() {
 	}
 
 	go func() {
+		defer cancel()
 		<-signals
 		if err := metricsServer.Shutdown(ctx); err != nil {
 			log.Printf("shutdown error: %v\n", err)

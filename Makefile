@@ -11,7 +11,7 @@ PHONY: .generate
 				--grpc-gateway_opt=logtostderr=true \
 				--grpc-gateway_opt=paths=import \
 				--validate_out lang=go:pkg/ocp-feedback-api \
-				--swagger_out=allow_merge=true,merge_file_name=api:swagger \
+				--swagger_out=allow_merge=true,merge_file_name=ocp-feedback-api:swagger \
 				api/ocp-feedback-api/feedback-service.proto \
 				api/ocp-feedback-api/feedback-messages.proto 
 		mv pkg/ocp-feedback-api/github.com/ozoncp/ocp-feedback-api/pkg/ocp-feedback-api/* pkg/ocp-feedback-api
@@ -26,7 +26,7 @@ PHONY: .generate
 				--grpc-gateway_opt=logtostderr=true \
 				--grpc-gateway_opt=paths=import \
 				--validate_out lang=go:pkg/ocp-proposal-api \
-				--swagger_out=allow_merge=true,merge_file_name=api:swagger \
+				--swagger_out=allow_merge=true,merge_file_name=ocp-proposal-api:swagger \
 				api/ocp-proposal-api/proposal-service.proto \
 				api/ocp-proposal-api/proposal-messages.proto
 		mv pkg/ocp-proposal-api/github.com/ozoncp/ocp-feedback-api/pkg/ocp-proposal-api/* pkg/ocp-proposal-api

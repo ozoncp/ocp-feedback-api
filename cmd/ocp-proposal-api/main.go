@@ -8,9 +8,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	cfg "github.com/ozoncp/ocp-feedback-api/internal/config"
@@ -63,6 +66,10 @@ func main() {
 
 	lis, grpcServer := createGRPCService(cfg, db, prod)
 	metricsServer := createMetricsServer(cfg)
+	gwServer, err := createGateway(ctx, cfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to start gateway")
+	}
 
 	go func() {
 		<-signals
@@ -79,7 +86,11 @@ func main() {
 	})
 
 	group.Go(func() error {
-		log.Info().Msgf("Serving Prometheus metrics at %v", cfg.Prometheus.URI)
+		log.Info().Msg("Serving gateway requests...")
+		return gwServer.ListenAndServe()
+	})
+
+	group.Go(func() error {
 		return metricsServer.ListenAndServe()
 	})
 
@@ -146,4 +157,37 @@ func createMetricsServer(cfg *cfg.Config) *http.Server {
 		Handler: mux,
 	}
 	return srv
+}
+
+func createGateway(ctx context.Context, cfg *cfg.Config) (*http.Server, error) {
+	mux := http.NewServeMux()
+	gwmux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+
+	grpcEndpoint := fmt.Sprintf("%v:%v", cfg.GRPC.Host, cfg.GRPC.Port)
+
+	if err := pr.RegisterOcpProposalApiHandlerFromEndpoint(
+		ctx, gwmux, grpcEndpoint, opts,
+	); err != nil {
+		return nil, err
+	}
+
+	mux.Handle("/swagger/", swaggerMiddleware(cfg))
+	mux.Handle("/", gwmux)
+
+	addr := fmt.Sprintf("%v:%v", cfg.Gateway.Host, cfg.Gateway.Port)
+	log.Info().Msgf("Serving http gateway at %v", addr)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+	return srv, nil
+}
+
+func swaggerMiddleware(cfg *cfg.Config) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := strings.TrimPrefix(r.URL.Path, "/swagger/")
+		p = path.Join(cfg.Gateway.Swagger, p)
+		http.ServeFile(w, r, p)
+	})
 }

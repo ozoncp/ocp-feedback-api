@@ -99,8 +99,8 @@ clean:
 
 .PHONY: feedback_server
 feedback_server:
-		go run cmd/ocp-feedback-api/main.go -config_name=feedback_cfg -config_path=.
+		go run cmd/ocp-feedback-api/main.go -config_name=feedback_cfg -config_path=configs
 
 .PHONY: proposal_server
 proposal_server:
-		go run cmd/ocp-proposal-api/main.go -config_name=proposal_cfg -config_path=.
+		go run cmd/ocp-proposal-api/main.go -config_name=proposal_cfg -config_path=configs

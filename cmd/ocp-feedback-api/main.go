@@ -73,11 +73,9 @@ func main() {
 
 	go func() {
 		<-signals
-		fmt.Println("kek")
 		if err := metricsServer.Shutdown(ctx); err != nil {
 			log.Printf("shutdown error: %v\n", err)
 		}
-		fmt.Println("kek1")
 		grpcServer.GracefulStop()
 		cancel()
 	}()

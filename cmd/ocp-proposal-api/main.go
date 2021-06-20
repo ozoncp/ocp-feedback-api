@@ -77,6 +77,9 @@ func main() {
 			log.Printf("shutdown error: %v\n", err)
 		}
 		grpcServer.GracefulStop()
+		if err := gwServer.Shutdown(ctx); err != nil {
+			log.Printf("shutdown error: %v\n", err)
+		}
 		cancel()
 	}()
 

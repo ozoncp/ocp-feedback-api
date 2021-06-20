@@ -57,6 +57,7 @@ func main() {
 
 	var group errgroup.Group
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	prod := createKafkaProducer(ctx, cfg)
 
@@ -77,7 +78,9 @@ func main() {
 			log.Printf("shutdown error: %v\n", err)
 		}
 		grpcServer.GracefulStop()
-		cancel()
+		if err := gwServer.Shutdown(ctx); err != nil {
+			log.Printf("shutdown error: %v\n", err)
+		}
 	}()
 
 	group.Go(func() error {

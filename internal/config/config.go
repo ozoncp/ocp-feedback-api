@@ -13,6 +13,12 @@ type GRPC struct {
 	Port int
 }
 
+type Gateway struct {
+	Host    string
+	Port    int
+	Swagger string
+}
+
 type Postgres struct {
 	ConnString   string
 	MaxOpenConns int
@@ -32,6 +38,7 @@ type Kafka struct {
 type Config struct {
 	General    General
 	GRPC       GRPC
+	Gateway    Gateway
 	Postgres   Postgres
 	Prometheus Prometheus
 	Kafka      Kafka
@@ -56,6 +63,10 @@ func Read(name, path string) (*Config, error) {
 	cfg.Postgres.ConnString = viper.GetString("postgres.conn_string")
 	cfg.Postgres.MaxOpenConns = viper.GetInt("postgres.max_open_conns")
 	cfg.Postgres.MaxIdleConns = viper.GetInt("postgres.max_idle_conns")
+
+	cfg.Gateway.Host = viper.GetString("gateway.host")
+	cfg.Gateway.Port = viper.GetInt("gateway.port")
+	cfg.Gateway.Swagger = viper.GetString("gateway.swagger")
 
 	cfg.Kafka.Brokers = viper.GetStringSlice("kafka.brokers")
 

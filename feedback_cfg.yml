@@ -3,7 +3,12 @@ general:
 
 grpc:
   host : "localhost"
-  port: 10000
+  port: 7000
+
+gateway:
+  host: "localhost"
+  port: 7001
+  swagger: "swagger/ocp-feedback-api.swagger.json"
 
 postgres:
   conn_string: "postgres://postgres:postgres@localhost/postgres"

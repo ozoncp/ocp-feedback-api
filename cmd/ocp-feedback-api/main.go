@@ -191,6 +191,7 @@ func createGateway(ctx context.Context, cfg *cfg.Config) (*http.Server, error) {
 
 func swaggerMiddleware(cfg *cfg.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		p := strings.TrimPrefix(r.URL.Path, "/swagger/")
 		p = path.Join(cfg.Gateway.Swagger, p)
 		http.ServeFile(w, r, p)

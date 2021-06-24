@@ -38,6 +38,7 @@ services:
             POSTGRES_DB: "postgres"
         volumes:
             - ./db:/docker-entrypoint-initdb.d/
+            - pgdata:/var/lib/postgresql/data
 
     prometheus:
         image: prom/prometheus
@@ -51,4 +52,6 @@ services:
         ports:
             - "6831:6831/udp"
             - "16686:16686"
-            
+volumes:
+    pgdata:
+

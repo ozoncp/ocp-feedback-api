@@ -5,11 +5,14 @@ import (
 	"io"
 
 	"github.com/opentracing/opentracing-go"
+	"github.com/rs/zerolog/log"
 	"github.com/uber/jaeger-client-go"
 	"github.com/uber/jaeger-client-go/config"
 )
 
-func Init(service string) io.Closer {
+func Init(service, jaegerHost string) io.Closer {
+
+	log.Info().Msgf("Sending jaeger traces to: %v", jaegerHost)
 	cfg := &config.Configuration{
 		ServiceName: service,
 		Sampler: &config.SamplerConfig{
@@ -17,7 +20,8 @@ func Init(service string) io.Closer {
 			Param: 1,
 		},
 		Reporter: &config.ReporterConfig{
-			LogSpans: false,
+			LogSpans:           false,
+			LocalAgentHostPort: jaegerHost,
 		},
 	}
 	tracer, closer, err := cfg.NewTracer(config.Logger(jaeger.StdLogger))

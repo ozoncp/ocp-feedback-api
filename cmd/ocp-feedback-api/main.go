@@ -46,7 +46,7 @@ func main() {
 	flag.Parse()
 	cfg, err := cfg.Read(configName, configPath)
 	if err != nil {
-		log.Fatal().Err(err).Msg("unable to read config file")
+		log.Fatal().Err(err).Msg("unable to laod config: ")
 	}
 
 	db := createDatabase(cfg)
@@ -61,7 +61,7 @@ func main() {
 	prod := createKafkaProducer(ctx, cfg)
 
 	// initialize tracer
-	closer := tracer.Init("ocp-feedback-api")
+	closer := tracer.Init("ocp-feedback-api", cfg.Jaeger.Host)
 	defer closer.Close()
 
 	lis, grpcServer := createGRPCService(cfg, db, prod)
@@ -122,6 +122,7 @@ func createKafkaProducer(ctx context.Context, cfg *cfg.Config) producer.Producer
 	saramaCfg.Producer.Flush.Frequency = time.Second
 
 	asyncProducer, err := sarama.NewAsyncProducer(cfg.Kafka.Brokers, saramaCfg)
+	log.Info().Msgf("Kafka brokers: %v", cfg.Kafka.Brokers)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start Sarama producer")
 	}
@@ -132,7 +133,7 @@ func createKafkaProducer(ctx context.Context, cfg *cfg.Config) producer.Producer
 
 func createGRPCService(cfg *cfg.Config, db *sqlx.DB, prod producer.Producer) (net.Listener, *grpc.Server) {
 
-	grpcEndpoint := fmt.Sprintf("%v:%v", cfg.GRPC.Host, cfg.GRPC.Port)
+	grpcEndpoint := fmt.Sprintf(":%v", cfg.GRPC.Port)
 	lis, err := net.Listen("tcp", grpcEndpoint)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Cannot start feedback grpc server at %v", grpcEndpoint)
@@ -154,7 +155,7 @@ func createGRPCService(cfg *cfg.Config, db *sqlx.DB, prod producer.Producer) (ne
 func createMetricsServer(cfg *cfg.Config) *http.Server {
 	mux := http.NewServeMux()
 	mux.Handle(cfg.Prometheus.URI, promhttp.Handler())
-	addr := fmt.Sprintf("%v:%v", cfg.Prometheus.Host, cfg.Prometheus.Port)
+	addr := fmt.Sprintf(":%v", cfg.Prometheus.Port)
 	log.Info().Msgf("Serving Prometheus metrics at %v%v", addr, cfg.Prometheus.URI)
 
 	srv := &http.Server{
@@ -169,7 +170,7 @@ func createGateway(ctx context.Context, cfg *cfg.Config) (*http.Server, error) {
 	gwmux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
-	grpcEndpoint := fmt.Sprintf("%v:%v", cfg.GRPC.Host, cfg.GRPC.Port)
+	grpcEndpoint := fmt.Sprintf(":%v", cfg.GRPC.Port)
 
 	if err := fb.RegisterOcpFeedbackApiHandlerFromEndpoint(
 		ctx, gwmux, grpcEndpoint, opts,
@@ -180,7 +181,7 @@ func createGateway(ctx context.Context, cfg *cfg.Config) (*http.Server, error) {
 	mux.Handle("/swagger/", swaggerMiddleware(cfg))
 	mux.Handle("/", gwmux)
 
-	addr := fmt.Sprintf("%v:%v", cfg.Gateway.Host, cfg.Gateway.Port)
+	addr := fmt.Sprintf(":%v", cfg.Gateway.Port)
 	log.Info().Msgf("Serving http gateway at %v", addr)
 	srv := &http.Server{
 		Addr:    addr,

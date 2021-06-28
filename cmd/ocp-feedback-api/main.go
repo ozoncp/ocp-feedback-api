@@ -179,6 +179,7 @@ func createGateway(ctx context.Context, cfg *cfg.Config) (*http.Server, error) {
 	}
 
 	mux.Handle("/swagger/", swaggerMiddleware(cfg))
+	mux.Handle("/health", http.HandlerFunc(checkHealth))
 	mux.Handle("/", gwmux)
 
 	addr := fmt.Sprintf(":%v", cfg.Gateway.Port)
@@ -188,6 +189,10 @@ func createGateway(ctx context.Context, cfg *cfg.Config) (*http.Server, error) {
 		Handler: mux,
 	}
 	return srv, nil
+}
+
+func checkHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK) // seems like out service is healthy all the time
 }
 
 func swaggerMiddleware(cfg *cfg.Config) http.Handler {

@@ -12,6 +12,12 @@ services:
             - "2112:2112" # prometheus
             - "7000:7000" # grpc
             - "7001:7001" # gateway
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:7001/health"]
+            interval: 1m30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
         environment:
             WAIT_HOSTS: postgres:5432, kafka:29092
             PGUSER: ${PGUSER:-postgres}
